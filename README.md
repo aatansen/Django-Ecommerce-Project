@@ -24,6 +24,9 @@
     - [Migrate New Model to Database](#migrate-new-model-to-database)
     - [Creating Superuser](#creating-superuser)
     - [Admin Modify](#admin-modify)
+  - [Display Product Frontend](#display-product-frontend)
+    - [Adding Slider](#adding-slider)
+    - [Creating Collection Page](#creating-collection-page)
 
 ## Project Setup
 
@@ -399,6 +402,9 @@
   STATIC_URL = 'static/'
   MEDIA_URL='/images/'
   MEDIA_ROOT=BASE_DIR/'static'
+  STATICFILES_DIRS = [
+      BASE_DIR / "static",
+  ]
   ```
 
 - Register model in `admin.py`
@@ -449,5 +455,146 @@
       ...
   ]
   ```
+
+[⬆️ Go to Context](#context)
+
+## Display Product Frontend
+
+### Adding Slider
+
+- Go to [bootstrap carousel](https://getbootstrap.com/docs/5.3/components/carousel/) and get the `Indicators` one
+- Create `slider.html` inside `inc` directory
+- Create a folder `images` inside `static` and store `slider1.jpg`
+
+  ```jinja
+  {% load static %}
+  <div id="carouselExampleIndicators" class="carousel slide">
+      <div class="carousel-indicators">
+        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
+        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+      </div>
+      <div class="carousel-inner">
+        <div class="carousel-item active">
+          <img src="{% static 'images/slider1.jpg' %}" height="400px" class="d-block w-100" alt="...">
+        </div>
+        <div class="carousel-item">
+          <img src="{% static 'images/slider1.jpg' %}" height="400px" class="d-block w-100" alt="...">
+        </div>
+        <div class="carousel-item">
+          <img src="{% static 'images/slider1.jpg' %}" height="400px" class="d-block w-100" alt="...">
+        </div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+  </div>
+  ```
+
+- Include slider in  `index.html`
+
+  ```jinja
+  {% extends 'store/layouts/main.html' %}
+
+  {% block content %}
+  {% include 'store/inc/slider.html' %}
+  <h1>Hello world</h1>
+  {% endblock content %}
+  ```
+
+- Modify navbar to align nav to right side
+
+  ```html
+  <nav class="navbar navbar-expand-lg bg-body-tertiary">
+      <div class="container">
+        ...
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+          ...
+          </ul>
+        </div>
+      </div>
+  </nav>
+  ```
+
+  - `<div class="container-fluid">` changed to `<div class="container">`
+  - `<ul class="navbar-nav">` changed to `<ul class="navbar-nav ms-auto">`
+
+[⬆️ Go to Context](#context)
+
+### Creating Collection Page
+
+- Create `collections.html` file in `store` directory
+
+  ```jinja
+  {% extends 'store/layouts/main.html' %}
+
+  {% block content %}
+  <div class="container">
+      <div class="row">
+          <div class="col-md-12">
+              <h1>Collections</h1>
+              <hr>
+              <div class="row">
+                  {% for item in category %}
+                      <div class="col-md-3">
+                          <div class="card">
+                              <div class="card-body">
+                                  <div class="category-image">
+                                      <img src="{{item.category_image.url}}" alt="Category image" class="w-100">
+                                  </div>
+                                  <h4 class="text-center">{{item.name}}</h4>
+                              </div>
+                          </div>
+                      </div>
+                  {% endfor %}
+              </div>
+          </div>
+      </div>
+  </div>
+  {% endblock content %}
+  ```
+
+- Create view function
+  
+  ```py
+  from django.shortcuts import render
+  from .models import *
+
+  # Create your views here.
+  ...
+  def collections(request):
+      category=Category_Model.objects.filter(status='0')
+      
+      context={
+          'category':category
+      }
+      return render(request,'store/collections.html',context)
+  ```
+
+- Add collection url pattern in `urls.py`
+
+  ```py
+  from django.urls import path
+  from .views import *
+  from django.conf import settings
+  from django.conf.urls.static import static
+
+  urlpatterns=[
+      path('',index,name="index"),
+      path('collections/',collections,name="collections"),
+  ]
+
+  if settings.DEBUG:
+      urlpatterns+=static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+  ```
+
+  - Here `DEBUG` is checked for `MEDIA_URL` and `MEDIA_ROOT`
+  - In production `DEBUG` will be `False`
 
 [⬆️ Go to Context](#context)
