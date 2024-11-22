@@ -9,6 +9,7 @@
     - [Environment](#environment)
     - [Create Project](#create-project)
     - [MySQL Database setup](#mysql-database-setup)
+    - [Set Time Zone](#set-time-zone)
     - [Database Initialize](#database-initialize)
   - [App Setup](#app-setup)
     - [Creating app](#creating-app)
@@ -18,6 +19,11 @@
     - [Setup Include Templates](#setup-include-templates)
     - [Adding First Created index Under Master Template (extends)](#adding-first-created-index-under-master-template-extends)
     - [Final Store App Structure](#final-store-app-structure)
+  - [Model, Superuser \& Admin Modify](#model-superuser--admin-modify)
+    - [Category \& Product Model](#category--product-model)
+    - [Migrate New Model to Database](#migrate-new-model-to-database)
+    - [Creating Superuser](#creating-superuser)
+    - [Admin Modify](#admin-modify)
 
 ## Project Setup
 
@@ -69,6 +75,13 @@
 
 - Install [mysqlclient](https://pypi.org/project/mysqlclient/)
   - `pip install mysqlclient`
+
+[⬆️ Go to Context](#context)
+
+### Set Time Zone
+
+- In `settings.py` edit `TIME_ZONE`
+  - `TIME_ZONE = 'Asia/Dhaka'`
 
 [⬆️ Go to Context](#context)
 
@@ -301,6 +314,140 @@
       └── tests.py
       └── urls.py
       └── views.py
+  ```
+
+[⬆️ Go to Context](#context)
+
+## Model, Superuser & Admin Modify
+
+### Category & Product Model
+
+- Category model
+
+  ```py
+  class Category_Model(models.Model):
+      slug = models.CharField(max_length=150, null=True, blank=True)  # Allow null/blank for auto-generation
+      name = models.CharField(max_length=150, unique=True, null=False, blank=False)
+      category_image = models.ImageField(upload_to=get_file_path, null=True, blank=True)
+      description = models.TextField(max_length=500, null=False, blank=False)
+      status = models.BooleanField(default=False, help_text="0=default,1=Hidden")
+      trending = models.BooleanField(default=False, help_text="0=default,1=Trending")
+      meta_title = models.CharField(max_length=150, null=False, blank=False)
+      meta_keywords = models.CharField(max_length=150, null=False, blank=False)
+      meta_description = models.TextField(max_length=500, null=False, blank=False)
+      created_at = models.DateTimeField(auto_now_add=True)
+      
+      def save(self, *args, **kwargs):
+          if not self.slug:  # Only generate slug if it's not already set
+              self.slug = slugify(self.name)
+          super(Category_Model, self).save(*args, **kwargs)
+      
+      def __str__(self):
+          return self.name
+  ```
+
+- Product model
+
+  ```py
+  class Product_Model(models.Model):
+      category = models.ForeignKey(Category_Model, on_delete=models.CASCADE)
+      slug = models.CharField(max_length=150, null=True, blank=True)  # Allow null/blank for auto-generation
+      name = models.CharField(max_length=150, null=False, blank=False)
+      product_image = models.ImageField(upload_to=get_file_path, null=True, blank=True)
+      small_description = models.TextField(max_length=250, null=False, blank=False)
+      quantity = models.IntegerField(null=False, blank=False)
+      description = models.TextField(max_length=500, null=False, blank=False)
+      original_price = models.FloatField(null=False, blank=False)
+      selling_price = models.FloatField(null=False, blank=False)
+      status = models.BooleanField(default=False, help_text="0=default,1=Hidden")
+      trending = models.BooleanField(default=False, help_text="0=default,1=Trending")
+      tag = models.CharField(max_length=150, null=False, blank=False)
+      meta_title = models.CharField(max_length=150, null=False, blank=False)
+      meta_keywords = models.CharField(max_length=150, null=False, blank=False)
+      meta_description = models.TextField(max_length=500, null=False, blank=False)
+      created_at = models.DateTimeField(auto_now_add=True)
+      
+      def save(self, *args, **kwargs):
+          if not self.slug:  # Generate slug only if it's not set
+              base_slug = slugify(self.name)
+              slug = base_slug
+              counter = 1
+              # Check if slug already exists
+              while Product_Model.objects.filter(slug=slug).exists():
+                  slug = f"{base_slug}-{counter}"
+                  counter += 1
+              self.slug = slug
+          super(Product_Model, self).save(*args, **kwargs)
+      
+      def __str__(self):
+          return self.name
+  ```
+
+- Image upload path function
+
+  ```py
+  def get_file_path(request, filename):
+      original_filename = filename
+      now_time = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+      new_filename = f"{now_time}_{original_filename}"  # Concatenate timestamp with the original filename
+      return os.path.join('uploads', new_filename)  # Join directory and filename
+  ```
+
+- Media,static path define in `settings.py`
+
+  ```py
+  STATIC_URL = 'static/'
+  MEDIA_URL='/images/'
+  MEDIA_ROOT=BASE_DIR/'static'
+  ```
+
+- Register model in `admin.py`
+
+  ```py
+  from django.contrib import admin
+  from .models import *
+
+  # Register your models here.
+  @admin.register(Category_Model)
+  class CategoryModelAdmin(admin.ModelAdmin):
+      prepopulated_fields = {"slug": ("name",)}  # Auto-fill slug based on name
+      list_display = ("name", "slug", "status", "trending", "created_at")
+
+  @admin.register(Product_Model)
+  class ProductModelAdmin(admin.ModelAdmin):
+      prepopulated_fields = {"slug": ("name",)}  # Pre-fills slug based on name
+      list_display = ("name", "slug", "category", "created_at")
+  ```
+
+  - Here `prepopulated_fields` will show the auto generated slug from name field
+
+[⬆️ Go to Context](#context)
+
+### Migrate New Model to Database
+
+- `py manage.py makemigrations`
+- `py manage.py migrate`
+
+[⬆️ Go to Context](#context)
+
+### Creating Superuser
+
+- Create superuser
+  - `py manage.py createsuperuser`
+
+[⬆️ Go to Context](#context)
+
+### Admin Modify
+
+- Install [django-jazzmin](https://pypi.org/project/django-jazzmin/)
+  - `pip install django-jazzmin`
+- Add `jazzmin` in `INSTALLED_APPS`
+
+  ```py
+  INSTALLED_APPS = [
+      'jazzmin',
+      ...
+  ]
   ```
 
 [⬆️ Go to Context](#context)
