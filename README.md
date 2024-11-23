@@ -29,6 +29,8 @@
     - [Creating Collection Page](#creating-collection-page)
     - [Fetch Products by Category](#fetch-products-by-category)
     - [Adding Breadcrumbs](#adding-breadcrumbs)
+    - [Show Product Details](#show-product-details)
+    - [Adding FontAwesome \& Google font](#adding-fontawesome--google-font)
 
 ## Project Setup
 
@@ -735,6 +737,181 @@
             text-decoration: none;
         }
     </style>
+  ```
+
+[⬆️ Go to Context](#context)
+
+### Show Product Details
+
+- Create url
+
+  ```py
+  urlpatterns=[
+      ...
+      path('collections/<str:cat_slug>/<str:prod_slug>',product_view,name="product_view"),
+  ]
+  ```
+
+- Create view
+
+  ```py
+  def product_view(request,cat_slug,prod_slug):
+      cat=Category_Model.objects.filter(slug=cat_slug,status="0")
+      if cat:
+          prod = Product_Model.objects.filter(slug=prod_slug,status="0")
+          if prod:
+              product=prod.first()
+              context={
+                  "product":product,
+              }
+          else:
+              messages.error(request,"No such product found")
+              return redirect("collections")
+      else:
+          messages.error(request,"No such category found")
+          return redirect("collections")
+      return render(request,"store/products/view.html",context)
+  ```
+
+- Create html page `view.html` inside `store/products/` directory
+
+  ```jinja
+  {% extends 'store/layouts/main.html' %}
+
+  {% block content %}
+  <div class="py-3 bg-primary">
+      <div class="container">
+          <a class="text-white" href="{% url 'index' %}">Home /</a>
+          <a class="text-white" href="{% url 'collections' %}">Collections /</a>
+          <a class="text-white" href="{% url 'collection_view' product.category.slug %}">{{product.category.name}}/</a>
+          <a class="text-white" href="{% url 'product_view' product.category.slug product.slug %}">{{product.name}}</a>
+      </div>
+  </div>
+
+  <div class="py-5">
+      <div class="container">
+          <div class="row">
+              <div class="col-md-12">
+                  <div class="card shadow">
+                      <div class="card-body">
+                          <div class="row">
+                              <div class="col-md-4">
+                                  {% if product.tag %}
+                                      <label class="product-viewtag">{{product.tag}}</label>
+                                  {% endif %}
+                                  <img src="{{product.product_image.url}}" class="w-100" alt="image">
+                              </div>
+                              <div class="col-md-8">
+                                  <h2 class="mb-0">
+                                      {{product.name}}
+                                      {% if product.trending %}
+                                      <label style="font-size: 16px;" class="float-end badge bg-danger trending_tag"></label>                                        
+                                      {% endif %}
+                                  </h2>
+                                  <hr>
+                                  <label class="me-3">Original Price : <s>{{product.original_price | stringformat:"d"}}</s></label>
+                                  <label class="fw-bold">Selling Price : {{product.selling_price | stringformat:"d"}}</label>
+                                  <p class="mt-3">
+                                      {{product.small_description}}
+                                  </p>
+                                  <hr>
+                                  {% if product.quantity > 0 %}
+                                      <label class="badge bg-success">In Stock</label>
+                                      {% else %}
+                                      <label class="badge bg-danger">Out of stock</label>
+                                  {% endif %}
+                                  <div class="row mt-2">
+                                      <div class="col-md-3">
+                                          <label for="Quantity">Quantity</label>
+                                          <div class="input-group text-center mb-3" style="width: 130px;">
+                                          <button class="input-group-text decrement-btn">-</button>
+                                          <input type="text" name="quantity" class="form-control text-center" value="1">
+                                          <button class="input-group-text increment-btn">+</button>
+                                          </div>
+                                      </div>
+                                      <div class="col-md-9">
+                                          <br>
+                                          {% if product.quantity > 0 %}
+                                              <button type="button" class="btn btn-primary me-3 float-start">Add to Cart <i class="fa fa-shopping-cart"></i></button>
+                                          {% endif %}
+                                          <button type="button" class="btn btn-success me-3 float-start">Add to Wishlist <i class="fa fa-heart"></i></button>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                          <div class="col-md-12">
+                              <hr>
+                              <h3>Description</h3>
+                              <p class="mt-3">
+                                  {{product.description}}
+                              </p>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+  {% endblock content %}
+  ```
+
+- To style the product tag a custom css design added in `main.html`
+
+  ```html
+  <!-- Google font  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    ...
+    .product-viewtag{
+        background-color: red;
+        color: #fff;
+        font-size: 11px;
+        line-height: 1;
+        position: absolute;
+        text-align: center;
+        text-transform: uppercase;
+        top: 22px;
+        margin-left: 17.5rem;
+        padding: 7px 10px;
+        font-weight: 600;
+        min-width: 45px;
+    }
+  </style>
+  ```
+
+### Adding FontAwesome & Google font
+
+- Font Awesome
+  - Get [FontAwesome cdn](https://cdnjs.com/libraries/font-awesome/)
+  - Add it in `main.html` head section
+
+    ```html
+    ...
+    <!-- font awesome  -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css" integrity="sha512-5Hs3dF2AEPkpNAR7UiOHba+lRSJNeM2ECkwxUIxC1Q/FLycGTbNapWXB4tP889k5T5Ju8fs4b1P5z/iB4nMfSQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    ...
+    ```
+
+- Google fonts
+  - Go to [Google Fonts](https://fonts.google.com/)
+  - Select font and copy the link & css and add it in head section and css section in `main.html`
+
+  ```html
+  <!-- Google font  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+      *{  font-family: "Roboto", sans-serif;
+          font-weight: 400;
+          font-style: normal;
+      }
+      a{
+          text-decoration: none;
+      }
+  </style>
   ```
 
 [⬆️ Go to Context](#context)

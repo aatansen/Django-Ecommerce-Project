@@ -29,3 +29,20 @@ def collection_view(request,slug):
     else:
         messages.warning(request,"No such category found")
         return redirect('collections')
+    
+def product_view(request,cat_slug,prod_slug):
+    cat=Category_Model.objects.filter(slug=cat_slug,status="0")
+    if cat:
+        prod = Product_Model.objects.filter(slug=prod_slug,status="0")
+        if prod:
+            product=prod.first()
+            context={
+                "product":product,
+            }
+        else:
+            messages.error(request,"No such product found")
+            return redirect("collections")
+    else:
+        messages.error(request,"No such category found")
+        return redirect("collections")
+    return render(request,"store/products/view.html",context)
