@@ -27,6 +27,8 @@
   - [Display Product Frontend](#display-product-frontend)
     - [Adding Slider](#adding-slider)
     - [Creating Collection Page](#creating-collection-page)
+    - [Fetch Products by Category](#fetch-products-by-category)
+    - [Adding Breadcrumbs](#adding-breadcrumbs)
 
 ## Project Setup
 
@@ -596,5 +598,143 @@
 
   - Here `DEBUG` is checked for `MEDIA_URL` and `MEDIA_ROOT`
   - In production `DEBUG` will be `False`
+
+[⬆️ Go to Context](#context)
+
+### Fetch Products by Category
+
+- Update `collections.html` with link `a` tag for each collection
+
+  ```jinja
+  {% for item in category %}
+      <div class="col-md-3">
+          <div class="card">
+          <a href="{% url 'collection_view' item.slug %}">
+              <div class="card-body">
+                  <div class="category-image">
+                      <img src="{{item.category_image.url}}" alt="Category image" class="w-100">
+                  </div>
+                  <h4 class="text-center">{{item.name}}</h4>
+              </div>
+          </a>
+          </div>
+      </div>
+  {% endfor %}
+  ```
+
+- Create a view function `collection_view`
+
+  ```py
+  def collection_view(request,slug):
+      cat=Category_Model.objects.filter(status='0',slug=slug)
+      
+      if cat:
+          products=Product_Model.objects.filter(category__slug=slug)
+          category=cat.first()
+          
+          context={
+              'products':products,
+              'category':category,
+          }
+          return render(request,'store/products/index.html',context)
+      else:
+          messages.warning(request,"No such category found")
+          return redirect('collections')
+  ```
+
+  - Checked if the category exists by filtering the `Category_Model` where `status='0'` (indicating it's not hidden) and the `slug` matches the given `slug` parameter.
+  - If the category exists:
+    - Queried the `Product_Model` to filter all products that belong to the category with the matching `slug` (using the `category__slug` lookup to filter based on the related `Category_Model`).
+    - Retrieved the first matching `Category_Model` instance to use as the current category.
+    - Prepared a context dictionary containing the filtered products and the category.
+    - Rendered the `store/products/index.html` template with the context data.
+  - If the category does not exist:
+    - Displayed a warning message using Django's messages framework.
+    - Redirected the user to the `collections` page.
+
+- Create a html file `index.html` in `store/products/` directory
+  
+  ```jinja
+  {% extends 'store/layouts/main.html' %}
+
+  {% block content %}
+
+  <div class="py-3 bg-primary">
+      <div class="container">
+          <a class="text-white" href="{% url 'index' %}">Home /</a>
+          <a class="text-white" href="{% url 'collections' %}">Collections /</a>
+          <a class="text-white" href="{% url 'collection_view' category.slug %}">{{category.name}}</a>
+      </div>
+  </div>
+
+  <div class="container">
+      <div class="row">
+          <div class="col-md-12">
+              <h1>{{category.name}}</h1>
+              <hr>
+              <div class="row">
+                  {% for item in products %}
+                      <div class="col-md-3">
+                          <div class="card">
+                          <a href="">
+                              <div class="card-body">
+                                  <div class="category-image">
+                                      <img src="{{item.product_image.url}}" alt="Category image" class="w-100">
+                                  </div>
+                                  <h4 class="text-center">{{item.name}}</h4>
+                                  <span class="float-start">{{item.selling_price | stringformat:'d'}}</span>
+                                  <span class="float-end">{{item.original_price | stringformat:'d'}}</span>
+                              </div>
+                          </a>
+                          </div>
+                      </div>
+                  {% endfor %}
+              </div>
+          </div>
+      </div>
+  </div>
+  {% endblock content %}
+  ```
+
+  - Here `stringformat` can be set as
+    - `d`: Decimal integer.
+    - `s`: String.
+    - `f`: Fixed-point float.
+
+- Create url pattern for `collection_view`
+
+  ```py
+  urlpatterns=[
+      ...
+      path('collections/<str:slug>',collection_view,name="collection_view"),
+  ]
+  ```
+
+[⬆️ Go to Context](#context)
+
+### Adding Breadcrumbs
+
+- Collection page breadcrumbs
+  
+  ```html
+  <div class="py-3 bg-primary">
+      <div class="container">
+          <a class="text-white" href="{% url 'index' %}">Home /</a>
+          <a class="text-white" href="{% url 'collections' %}">Collections /</a>
+          <a class="text-white" href="{% url 'collection_view' category.slug %}">{{category.name}}</a>
+      </div>
+  </div>
+  ...
+  ```
+
+- Breadcrumbs text will be underlined so add `text-decoration: none` in `main.html`
+
+  ```html
+    <style>
+        a{
+            text-decoration: none;
+        }
+    </style>
+  ```
 
 [⬆️ Go to Context](#context)

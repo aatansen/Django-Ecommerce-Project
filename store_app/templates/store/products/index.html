@@ -5,25 +5,28 @@
 <div class="py-3 bg-primary">
     <div class="container">
         <a class="text-white" href="{% url 'index' %}">Home /</a>
-        <a class="text-white" href="{% url 'collections' %}">Collections</a>
+        <a class="text-white" href="{% url 'collections' %}">Collections /</a>
+        <a class="text-white" href="{% url 'collection_view' category.slug %}">{{category.name}}</a>
     </div>
 </div>
 
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <h1>Collections</h1>
+            <h1>{{category.name}}</h1>
             <hr>
             <div class="row">
-                {% for item in category %}
+                {% for item in products %}
                     <div class="col-md-3">
                         <div class="card">
-                        <a href="{% url 'collection_view' item.slug %}">
+                        <a href="">
                             <div class="card-body">
                                 <div class="category-image">
-                                    <img src="{{item.category_image.url}}" alt="Category image" class="w-100">
+                                    <img src="{{item.product_image.url}}" alt="Category image" class="w-100">
                                 </div>
                                 <h4 class="text-center">{{item.name}}</h4>
+                                <span class="float-start">{{item.selling_price | stringformat:'d'}}</span>
+                                <span class="float-end">{{item.original_price | stringformat:'d'}}</span>
                             </div>
                         </a>
                         </div>

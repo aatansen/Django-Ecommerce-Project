@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 urlpatterns=[
     path('',index,name="index"),
     path('collections/',collections,name="collections"),
+    path('collections/<str:slug>',collection_view,name="collection_view"),
 ]
 
 if settings.DEBUG:
