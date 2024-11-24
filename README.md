@@ -704,6 +704,8 @@
     - `s`: String.
     - `f`: Fixed-point float.
 
+  > a link will be edited as `<a href="{% url 'collection_view' item.slug %}">` after following `Show Product Details` steps
+
 - Create url pattern for `collection_view`
 
   ```py
