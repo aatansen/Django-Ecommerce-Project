@@ -679,7 +679,7 @@
                   {% for item in products %}
                       <div class="col-md-3">
                           <div class="card">
-                          <a href="">
+                          <a href="{% url 'product_view' item.category.slug item.slug %}">
                               <div class="card-body">
                                   <div class="category-image">
                                       <img src="{{item.product_image.url}}" alt="Category image" class="w-100">
@@ -703,8 +703,6 @@
     - `d`: Decimal integer.
     - `s`: String.
     - `f`: Fixed-point float.
-
-  > a link will be edited as `<a href="{% url 'collection_view' item.slug %}">` after following `Show Product Details` steps
 
 - Create url pattern for `collection_view`
 
