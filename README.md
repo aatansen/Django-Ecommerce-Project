@@ -30,7 +30,8 @@
     - [Fetch Products by Category](#fetch-products-by-category)
     - [Adding Breadcrumbs](#adding-breadcrumbs)
     - [Show Product Details](#show-product-details)
-    - [Adding FontAwesome \& Google font](#adding-fontawesome--google-font)
+    - [Adding Font Awesome \& Google font](#adding-font-awesome--google-font)
+    - [Product Increment \& Decrement (jQuery)](#product-increment--decrement-jquery)
 
 ## Project Setup
 
@@ -881,7 +882,7 @@
   </style>
   ```
 
-### Adding FontAwesome & Google font
+### Adding Font Awesome & Google font
 
 - Font Awesome
   - Get [FontAwesome cdn](https://cdnjs.com/libraries/font-awesome/)
@@ -912,6 +913,56 @@
           text-decoration: none;
       }
   </style>
+  ```
+
+[⬆️ Go to Context](#context)
+
+### Product Increment & Decrement (jQuery)
+
+- Get [jQuery code](https://releases.jquery.com/) minified one `jquery-3.7.1.min.js`
+- View the code and copy the content [jquery-3.7.1.min.js](https://code.jquery.com/jquery-3.7.1.min.js)
+- Save as `jquery-3.7.1.min.js` in `static\js\jquery-3.7.1.min.js` directory
+- Include it in `main.html` inside `head`
+
+  ```jinja
+  <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
+  ```
+
+- Now create another js file in the same directory `custom.js`
+- Install [jQuery Code Snippets](https://marketplace.visualstudio.com/items?itemName=donjayamanne.jquerysnippets)
+- Now writing `jqdoc`,`jqclick`,`jqfind` will give the code snippet
+
+  ```js
+  $(document).ready(function () {
+      $('.increment-btn').click(function (e) { 
+          e.preventDefault();
+          var inc_value=$(this).closest('.product_data').find('.qty-input').val();
+          var value=parseInt(inc_value,10);
+          value=isNaN(value)?0:value;
+          if(value<10){
+              value++;
+              $(this).closest('.product_data').find('.qty-input').val(value);
+          }
+      });
+
+      $('.decrement-btn').click(function (e) { 
+          e.preventDefault();
+          var dec_value=$(this).closest('.product_data').find('.qty-input').val();
+          var value=parseInt(dec_value,10);
+          value=isNaN(value)?0:value;
+          if(value>1){
+              value--;
+              $(this).closest('.product_data').find('.qty-input').val(value);
+          }
+      });
+  });
+  ```
+
+- Include this `custom.js` in `main.html` `head` after `jquery-3.7.1.min.js`
+
+  ```jinja
+  <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
+  <script src="{% static 'js/custom.js' %}"></script>
   ```
 
 [⬆️ Go to Context](#context)
