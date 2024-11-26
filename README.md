@@ -32,6 +32,9 @@
     - [Show Product Details](#show-product-details)
     - [Adding Font Awesome \& Google font](#adding-font-awesome--google-font)
     - [Product Increment \& Decrement (jQuery)](#product-increment--decrement-jquery)
+  - [User Authentication](#user-authentication)
+    - [User Registration](#user-registration)
+    - [Adding Bootstrap in Register Form](#adding-bootstrap-in-register-form)
 
 ## Project Setup
 
@@ -963,6 +966,123 @@
   ```jinja
   <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
   <script src="{% static 'js/custom.js' %}"></script>
+  ```
+
+[⬆️ Go to Context](#context)
+
+## User Authentication
+
+### User Registration
+
+- In `models.py` import `User`
+  - `from django.contrib.auth.models import User`
+- Create a new file `forms.py`
+
+  ```py
+  from django.contrib.auth.forms import UserCreationForm
+  from django import forms
+  from .models import User
+
+  class CustomUserForm(UserCreationForm):
+      class Meta:
+          model=User
+          fields = ['username','email','password','password2']
+  ```
+
+- Create `register.html` in `store_app/templates/store/auth/register.html` directory
+- To make everything organize the view of user registration created in `store_app/controller/authview.py` directory
+
+  ```py
+  from django.shortcuts import render,redirect
+  from django.contrib import messages
+  from store_app.models import *
+  from store_app.forms import *
+
+  def register(request):
+      form = CustomUserForm()
+      context={
+          'form':form
+      }
+      return render(request,'store/auth/register.html',context)
+  ```
+
+- Now `form` will be visible in `register.html` page with `{{form.as_p}}`
+
+### Adding Bootstrap in Register Form
+
+- Write bootstrap form structure
+
+  ```jinja
+  {% extends 'store/layouts/main.html' %}
+
+  {% block content %}
+
+  <div class="container">
+      <div class="row justify-content-center">
+          <div class="col-md-6">
+              <div class="">
+                  <div class="card mt-3 shadow">
+                      <div class="card-body">
+                          <form action="" method="POST">
+                              {% csrf_token %}
+                              <div class="text-center">
+                                  <h4>Registration form</h4>
+                              </div>
+                              <hr>
+                              <div class="form-group">
+                                  <label for="">Username:</label>
+                                  {{form.username}}
+                                  
+                                  {% if form.errors.username %}
+                                      <label for="" class="text-danger">{{form.errors.username}}</label>
+                                  {% endif %}
+                                      
+                              </div>
+                              <div class="form-group">
+                                  <label for="">Email:</label>
+                                  {{form.email}}
+                                  {% if form.errors.email %}
+                                      <label for="" class="text-danger">{{form.errors.email}}</label>
+                                  {% endif %}
+                              </div>
+                              <div class="form-group">
+                                  <label for="">Password:</label>
+                                  {{form.password1}}
+                                  {% if form.errors.password1 %}
+                                  <label for="" class="text-danger">{{form.errors.password1}}</label>
+                                  {% endif %}
+                              </div>
+                              <div class="form-group">
+                                  <label for="">Confirm Password:</label>
+                                  {{form.password2}}
+                                  {% if form.errors.password2 %}
+                                  <label for="" class="text-danger">{{form.errors.password2}}</label>
+                                  {% endif %}
+                              </div>
+                              <div class="text-center">
+                                  <button type="submit" class="btn shadow btn-success px-4">Register</button>
+                              </div>
+                          </form>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+  {% endblock content %}
+  ```
+
+- Go to `forms.py` and add widget
+
+  ```py
+  class CustomUserForm(UserCreationForm):
+      username=forms.CharField(widget=forms.TextInput(attrs={'class':'form-control my-2', 'placeholder':'Enter username'}))
+      email=forms.CharField(widget=forms.TextInput(attrs={'class':'form-control my-2', 'placeholder':'Enter email'}))
+      password1=forms.CharField(widget=forms.PasswordInput(attrs={'class':'form-control my-2', 'placeholder':'Enter password'}))
+      password2=forms.CharField(widget=forms.PasswordInput(attrs={'class':'form-control my-2', 'placeholder':'Confirm password'}))
+      class Meta:
+          model=User
+          fields = ['username','email','password1','password2']
   ```
 
 [⬆️ Go to Context](#context)
