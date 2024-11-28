@@ -30,6 +30,7 @@
     - [Fetch Products by Category](#fetch-products-by-category)
     - [Adding Breadcrumbs](#adding-breadcrumbs)
     - [Show Product Details](#show-product-details)
+    - [Get Absolute Url Note](#get-absolute-url-note)
     - [Adding Font Awesome \& Google font](#adding-font-awesome--google-font)
     - [Product Increment \& Decrement (jQuery)](#product-increment--decrement-jquery)
   - [User Authentication](#user-authentication)
@@ -887,6 +888,27 @@
     }
   </style>
   ```
+
+### Get Absolute Url Note
+
+> [!NOTE]
+> Here in `a tag` we set url for collection view `{% url 'collection_view' item.slug %}`
+>
+> We can use `get_absolute_url`
+>
+> ```py
+> def get_absolute_url(self):
+>     return reverse('collection_view', kwargs={'slug': self.slug})
+>  ```
+>
+> Now we can access url `{{ item.get_absolute_url }}`
+>
+> Similarly for product view `get_absolute_url` can be setup for `a tag` in product model
+>
+> ```py
+> def get_absolute_url(self):
+>     return reverse('product_view', kwargs={'cat_slug': self.category.slug, 'prod_slug': self.slug})
+> ```
 
 ### Adding Font Awesome & Google font
 
