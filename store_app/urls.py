@@ -2,7 +2,7 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
-from store_app.controller import authview
+from store_app.controller import authview,cart
 
 urlpatterns=[
     path('',views.index,name="index"),
@@ -12,6 +12,8 @@ urlpatterns=[
     path('register/',authview.register,name="register"),
     path('login/',authview.login_page,name="login_page"),
     path('logout/',authview.logoutpage,name="logout_page"),
+
+    path('add-to-cart/',cart.add_to_cart,name="add_to_cart"),
 ]
 
 if settings.DEBUG:

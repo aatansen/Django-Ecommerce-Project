@@ -133,3 +133,9 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar": "navbar-black navbar-dark",
+    "theme": "darkly", 
+    "dark_mode_theme": "darkly",
+}

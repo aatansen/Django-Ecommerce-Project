@@ -11,3 +11,5 @@ class CategoryModelAdmin(admin.ModelAdmin):
 class ProductModelAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}  # Pre-fills slug based on name
     list_display = ("name", "slug", "category", "created_at")
+    
+admin.site.register(Cart_Model)

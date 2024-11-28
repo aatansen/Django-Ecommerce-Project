@@ -63,3 +63,12 @@ class Product_Model(models.Model):
     
     def __str__(self):
         return self.name
+
+class Cart_Model(models.Model):
+    user=models.ForeignKey(User, on_delete=models.CASCADE)
+    product=models.ForeignKey(Product_Model, on_delete=models.CASCADE)
+    product_qty=models.IntegerField(null=False,blank=False)
+    created_at=models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.user} added {self.product_qty} of {self.product} in cart"

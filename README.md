@@ -39,6 +39,7 @@
     - [User Login](#user-login)
     - [Log out](#log-out)
     - [Showing Messages using Alertify JS](#showing-messages-using-alertify-js)
+    - [Add to Cart using JQuery Ajax](#add-to-cart-using-jquery-ajax)
 
 ## Project Setup
 
@@ -910,6 +911,8 @@
 >     return reverse('product_view', kwargs={'cat_slug': self.category.slug, 'prod_slug': self.slug})
 > ```
 
+[⬆️ Go to Context](#context)
+
 ### Adding Font Awesome & Google font
 
 - Font Awesome
@@ -1269,5 +1272,84 @@
       {% endfor %}
   </script>
   ```
+
+[⬆️ Go to Context](#context)
+
+### Add to Cart using JQuery Ajax
+
+- Create `Cart_Model` model in `models.py`
+
+  ```py
+  class Cart_Model(models.Model):
+      user=models.ForeignKey(User, on_delete=models.CASCADE)
+      product=models.ForeignKey(Product_Model, on_delete=models.CASCADE)
+      product_qty=models.IntegerField(null=False,blank=False)
+      created_at=models.DateTimeField(auto_now_add=True)
+      
+      def __str__(self):
+          return f"{self.user} added {self.product_qty} of {self.product} in cart"
+  ```
+
+- Register `Cart_Model` in `admin.py`
+- Migrate database
+- Open `store_app/templates/store/products/view.html` and add `addToCartBtn` class in Add to cart button
+- Now open `custom.js` and get `addToCartBtn` class using `jqclick` snippet
+- Get value of product id & quantity using `jqvalget` snippet
+- Write ajax using `jqajax` snippet
+
+  ```js
+  // add to cart button functionality
+  $('.addToCartBtn').click(function (e) { 
+      e.preventDefault();
+      var product_id=$(this).closest('.product_data').find('.prod_id').val();
+      var product_qty=$(this).closest('.product_data').find('.qty-input').val();
+      var token=$('input[name=csrfmiddlewaretoken]').val();
+      $.ajax({
+          method: "POST",
+          url: "/add-to-cart/",
+          data: {
+              'product_id':product_id,
+              'product_qty':product_qty,
+              csrfmiddlewaretoken: token,
+          },
+          success: function (response) {
+              console.log(response);
+              alertify.success(response.status)
+          }
+      });
+  });
+  ```
+
+- Make sure `csrf_token` is written in product view html page
+- Create url path `add-to-cart` in `urls.py` which is mentioned in Ajax `url`
+- Create view function `add_to_cart` in `store_app/controller/cart.py`
+
+  ```py
+  from django.shortcuts import render,redirect
+  from django.http import JsonResponse
+  from store_app.models import *
+
+  def add_to_cart(request):
+      if request.method=='POST':
+          if request.user.is_authenticated:
+              prod_id=int(request.POST.get('product_id'))
+              product_check=Product_Model.objects.get(id=prod_id)
+              if product_check:
+                  if Cart_Model.objects.filter(user=request.user,product_id=prod_id):
+                      return JsonResponse({'status':"Product already in cart"})
+                  else:
+                      prod_qty=int(request.POST.get('product_qty'))
+                      if product_check.quantity>=prod_qty:
+                          Cart_Model.objects.create(user=request.user,product_id=prod_id,product_qty=prod_qty)
+                          return JsonResponse({'status':"Product added successfully"})
+                      else:
+                          return JsonResponse({'status':f"Only {product_check.quantity} item is available"})
+              else:
+                  return JsonResponse({'status':"No such product found"})
+          else:
+              return JsonResponse({'status':"Login to Continue"})
+      
+      return redirect('index')
+    ```
 
 [⬆️ Go to Context](#context)
