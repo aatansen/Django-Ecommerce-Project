@@ -11,16 +11,27 @@
                         <form action="" method="POST">
                             {% csrf_token %}
                             <div class="text-center">
-                                <h4>Login form</h4>
+                                <h4>Login Form</h4>
                             </div>
                             <hr>
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.non_field_errors }}
+                                </div>
+                            {% endif %}
                             <div class="form-group">
                                 <label for="">Username:</label>
-                                <input type="text">
+                                {{ form.username }}
+                                {% if form.errors.username %}
+                                    <label for="" class="text-danger">{{ form.errors.username }}</label>
+                                {% endif %}
                             </div>
                             <div class="form-group">
                                 <label for="">Password:</label>
-                                <input type="text">
+                                {{ form.password }}
+                                {% if form.errors.password %}
+                                    <label for="" class="text-danger">{{ form.errors.password }}</label>
+                                {% endif %}
                             </div>
                             <div class="text-center">
                                 <button type="submit" class="btn shadow btn-success px-4">Login</button>

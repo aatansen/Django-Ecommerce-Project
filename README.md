@@ -35,6 +35,8 @@
   - [User Authentication](#user-authentication)
     - [User Registration](#user-registration)
     - [Adding Bootstrap in Register Form](#adding-bootstrap-in-register-form)
+    - [User Login](#user-login)
+    - [Log out](#log-out)
 
 ## Project Setup
 
@@ -175,10 +177,10 @@
 
     ```py
     from django.urls import path
-    from .views import *
+    from . import views
 
     urlpatterns=[
-        path('',index,name="index")
+        path('',views.index,name="index"),
     ]
     ```
 
@@ -589,13 +591,13 @@
 
   ```py
   from django.urls import path
-  from .views import *
+  from . import views
   from django.conf import settings
   from django.conf.urls.static import static
 
   urlpatterns=[
-      path('',index,name="index"),
-      path('collections/',collections,name="collections"),
+      path('',views.index,name="index"),
+      path('collections/',views.collections,name="collections"),
   ]
 
   if settings.DEBUG:
@@ -712,7 +714,7 @@
   ```py
   urlpatterns=[
       ...
-      path('collections/<str:slug>',collection_view,name="collection_view"),
+      path('collections/<str:slug>',views.collection_view,name="collection_view"),
   ]
   ```
 
@@ -752,7 +754,7 @@
   ```py
   urlpatterns=[
       ...
-      path('collections/<str:cat_slug>/<str:prod_slug>',product_view,name="product_view"),
+      path('collections/<str:cat_slug>/<str:prod_slug>',views.product_view,name="product_view"),
   ]
   ```
 
@@ -1006,6 +1008,9 @@
       return render(request,'store/auth/register.html',context)
   ```
 
+- Set url in `urls.py`
+  - `path('register/',authview.register,name="register"),`
+
 - Now `form` will be visible in `register.html` page with `{{form.as_p}}`
 
 ### Adding Bootstrap in Register Form
@@ -1084,5 +1089,129 @@
           model=User
           fields = ['username','email','password1','password2']
   ```
+
+[⬆️ Go to Context](#context)
+
+### User Login
+
+- Create `login_page` function in `store_app/controller/authview.py`
+
+  ```py
+  def login_page(request):
+      if request.user.is_authenticated:
+          return redirect('index')
+      form = CustomLoginForm()
+      if request.method == 'POST':
+          form = CustomLoginForm(data=request.POST)
+          if form.is_valid():
+              user = form.get_user()
+              login(request, user)
+              messages.success(request, "Login Successful! Welcome back.")
+              return redirect('index')
+      context = {
+          'form': form
+      }
+      return render(request, 'store/auth/login.html', context)
+  ```
+
+- Create url path in `urls.py`
+  - `path('login/',authview.login_page,name="login_page"),`
+
+- Create `login.html` html page in `store_app/templates/store/auth/login.html`
+
+  ```jinja
+  {% extends 'store/layouts/main.html' %}
+
+  {% block content %}
+
+  <div class="container">
+      <div class="row justify-content-center">
+          <div class="col-md-6">
+              <div class="">
+                  <div class="card mt-3 shadow">
+                      <div class="card-body">
+                          <form action="" method="POST">
+                              {% csrf_token %}
+                              <div class="text-center">
+                                  <h4>Login Form</h4>
+                              </div>
+                              <hr>
+                              {% if form.non_field_errors %}
+                                  <div class="alert alert-danger">
+                                      {{ form.non_field_errors }}
+                                  </div>
+                              {% endif %}
+                              <div class="form-group">
+                                  <label for="">Username:</label>
+                                  {{ form.username }}
+                                  {% if form.errors.username %}
+                                      <label for="" class="text-danger">{{ form.errors.username }}</label>
+                                  {% endif %}
+                              </div>
+                              <div class="form-group">
+                                  <label for="">Password:</label>
+                                  {{ form.password }}
+                                  {% if form.errors.password %}
+                                      <label for="" class="text-danger">{{ form.errors.password }}</label>
+                                  {% endif %}
+                              </div>
+                              <div class="text-center">
+                                  <button type="submit" class="btn shadow btn-success px-4">Login</button>
+                              </div>
+                          </form>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  {% endblock content %}
+  ```
+
+[⬆️ Go to Context](#context)
+
+### Log out
+
+- Create a view function
+
+  ```py
+  def logoutpage(request):
+      if request.user.is_authenticated:
+          logout(request)
+          messages.success(request, "logged out successfully")
+          return redirect('index')
+      return redirect('index')
+  ```
+
+- Add url path `path('logout/',authview.logoutpage,name="logoutpage"),`
+- Add `logoutpage` logout button in `navbar.html`
+
+  ```jinja
+  ...
+  {% if user.is_authenticated %}
+  <li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+      {{user}}
+    </a>
+    <ul class="dropdown-menu">
+      <li><a class="dropdown-item" href="#">Action</a></li>
+      <li><a class="dropdown-item" href="#">Another action</a></li>
+      <li><hr class="dropdown-divider"></li>
+      <li><a class="dropdown-item" href="{% url 'logout_page' %}">Logout</a></li>
+    </ul>
+  </li>
+  {% else %}
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'login_page' %}">Login</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'register' %}">Register</a>
+  </li>
+  {% endif %}
+  ...
+  ```
+
+  - Here new dropdown added from [bootstrap navbar docs](https://getbootstrap.com/docs/5.3/components/navbar/#supported-content)
 
 [⬆️ Go to Context](#context)
