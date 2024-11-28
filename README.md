@@ -37,6 +37,7 @@
     - [Adding Bootstrap in Register Form](#adding-bootstrap-in-register-form)
     - [User Login](#user-login)
     - [Log out](#log-out)
+    - [Showing Messages using Alertify JS](#showing-messages-using-alertify-js)
 
 ## Project Setup
 
@@ -245,7 +246,7 @@
   </head>
   ```
 
-- Now add `bootstrap.bundle.min.js` script before `scripts block` so it will be common for each page
+- Now add `bootstrap.bundle.min.js` script in `body` before `scripts block` so it will be common for each page
 
   ```jinja
   <body>
@@ -902,7 +903,7 @@
 
 - Google fonts
   - Go to [Google Fonts](https://fonts.google.com/)
-  - Select font and copy the link & css and add it in head section and css section in `main.html`
+  - Select font and copy the link & css and add it in head section and css style section in `main.html`
 
   ```html
   <!-- Google font  -->
@@ -927,7 +928,7 @@
 - Get [jQuery code](https://releases.jquery.com/) minified one `jquery-3.7.1.min.js`
 - View the code and copy the content [jquery-3.7.1.min.js](https://code.jquery.com/jquery-3.7.1.min.js)
 - Save as `jquery-3.7.1.min.js` in `static\js\jquery-3.7.1.min.js` directory
-- Include it in `main.html` inside `head`
+- Include it in `main.html` before the end of `body` tag
 
   ```jinja
   <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
@@ -963,7 +964,7 @@
   });
   ```
 
-- Include this `custom.js` in `main.html` `head` after `jquery-3.7.1.min.js`
+- Include this `custom.js` in `main.html` `body` after `jquery-3.7.1.min.js`
 
   ```jinja
   <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
@@ -1213,5 +1214,38 @@
   ```
 
   - Here new dropdown added from [bootstrap navbar docs](https://getbootstrap.com/docs/5.3/components/navbar/#supported-content)
+
+[⬆️ Go to Context](#context)
+
+### Showing Messages using [Alertify JS](https://alertifyjs.com/)
+
+- Go to [Alertify JS Guide](https://alertifyjs.com/guide.html)
+- Get AlertifyJS CDN in `store_app/templates/store/layouts/main.html`
+- Add script in `body`
+
+  ```jinja
+  <!-- alertify js  -->
+  <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/alertify.min.js"></script>
+  ```
+
+- Add css in `head`
+
+  ```html
+  <!-- alertify CSS -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/alertify.min.css"/>
+  <!-- alertify Default theme -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/themes/default.min.css"/>
+  ```
+
+- Go to [Notifier position](https://alertifyjs.com/notifier/position.html) section of Alertify JS Components and add the script after cdn
+
+  ```jinja
+  <script>
+      alertify.set('notifier','position', 'top-right');
+      {% for msg in messages %}
+      alertify.success('{{msg}}');
+      {% endfor %}
+  </script>
+  ```
 
 [⬆️ Go to Context](#context)
