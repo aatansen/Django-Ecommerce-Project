@@ -42,6 +42,8 @@
   - [Product Cart](#product-cart)
     - [Add to Cart using JQuery Ajax](#add-to-cart-using-jquery-ajax)
     - [Display Cart Item](#display-cart-item)
+    - [Update Product Quantity in Cart](#update-product-quantity-in-cart)
+    - [Remove Item from Cart](#remove-item-from-cart)
 
 ## Project Setup
 
@@ -1325,7 +1327,7 @@
   ```
 
 - Make sure `csrf_token` is written in product view html page
-- Create url path `add-to-cart` in `urls.py` which is mentioned in Ajax `url`
+- Create url path `add-to-cart/` in `urls.py` which is mentioned in Ajax `url`
 - Create view function `add_to_cart` in `store_app/controller/cart.py`
 
   ```py
@@ -1446,5 +1448,111 @@
   - It is similar to `view.html` of the product
   - `product_data` class should be inside for loop otherwise increment and decrement won't work properly
   - JS functionalities are written in `static/js/custom.js` file
+
+[⬆️ Go to Context](#context)
+
+### Update Product Quantity in Cart
+
+- Add new class in increment and decrement button `changeQuantity`
+- Open `static/js/custom.js` and write exact same as add to cart functionality where class name is changed to `changeQuantity`
+
+  ```js
+  // update and change the quantity of the product
+  $('.changeQuantity').click(function (e) { 
+      e.preventDefault();
+      var product_id=$(this).closest('.product_data').find('.prod_id').val();
+      var product_qty=$(this).closest('.product_data').find('.qty-input').val();
+      var token=$('input[name=csrfmiddlewaretoken]').val();
+      $.ajax({
+          method: "POST",
+          url: "/update-cart/",
+          data: {
+              'product_id':product_id,
+              'product_qty':product_qty,
+              csrfmiddlewaretoken: token,
+          },
+          success: function (response) {
+              console.log(response);
+              alertify.success(response.status)
+          }
+      });
+  });
+  ```
+
+- Create url path for `update-cart/` in `urls.py`
+- `path('update-cart/',cart.update_cart,name="update_cart"),`
+- Create view in `store_app/controller/cart.py`
+
+  ```py
+  def update_cart(request):
+      if request.method == 'POST':
+          prod_id = int(request.POST.get('product_id'))
+          prod_qty = int(request.POST.get('product_qty'))
+          
+          # Check if the product exists in the cart for the user
+          if Cart_Model.objects.filter(user=request.user, product_id=prod_id).exists():
+              cart = Cart_Model.objects.get(product_id=prod_id, user=request.user)
+              product = Product_Model.objects.get(id=prod_id)
+              
+              # Check if the requested quantity is available
+              if product.quantity >= prod_qty:
+                  cart.product_qty = prod_qty
+                  cart.save()
+                  return JsonResponse({'status': "Updated Successfully"})
+              else:
+                  return JsonResponse({'status': f"Sorry, only {product.quantity} units are available"})
+
+          return JsonResponse({'status': "Product not found in cart"})
+      
+      return redirect('index')
+  ```
+
+[⬆️ Go to Context](#context)
+
+### Remove Item from Cart
+
+- Using `delete-cart-item` class create ajax click function in `static/js/custom.js`
+
+  ```js
+  $('.delete-cart-item').click(function (e) { 
+      e.preventDefault();
+      var product_id=$(this).closest('.product_data').find('.prod_id').val();
+      var token=$('input[name=csrfmiddlewaretoken]').val();
+
+      $.ajax({
+          method: "POST",
+          url: "/delete-cart-item/",
+          data: {
+              'product_id':product_id,
+              csrfmiddlewaretoken:token,
+          },
+          success: function (response) {
+              alertify.success(response.status)
+
+              // reload only card body on remove item 
+              $('.card-data').load(location.href+" .card-data");
+          }
+      });
+  });
+  ```
+
+  - Here we get the product id and token for POST method
+  - For show the updated page `card-data` class is used to reload the section of card body only not whole page
+
+- Create `delete-cart-item/` url in `urls.py`
+  - `path('delete-cart-item/',cart.delete_cart_item,name="delete_cart_item"),`
+- Create view in `store_app/controller/cart.py`
+
+  ```py
+  def delete_cart_item(request):
+      if request.method=='POST':
+          prod_id=int(request.POST.get('product_id'))
+          cart_check=Cart_Model.objects.filter(user=request.user,product_id=prod_id)
+          if cart_check:
+              cart_item=Cart_Model.objects.get(user=request.user,product_id=prod_id)
+              cart_item.delete()
+              return JsonResponse({'status': "Item removed successfully"})
+      return redirect('index')
+  ```
 
 [⬆️ Go to Context](#context)
