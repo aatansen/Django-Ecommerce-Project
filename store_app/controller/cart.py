@@ -1,5 +1,6 @@
 from django.shortcuts import render,redirect
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
 from store_app.models import *
 
 def add_to_cart(request):
@@ -24,6 +25,7 @@ def add_to_cart(request):
     
     return redirect('index')
 
+@login_required(login_url='login_page')
 def cart_view(request):
     cart=Cart_Model.objects.filter(user=request.user)
     context={
@@ -55,10 +57,13 @@ def update_cart(request):
 
 def delete_cart_item(request):
     if request.method=='POST':
-        prod_id=int(request.POST.get('product_id'))
-        cart_check=Cart_Model.objects.filter(user=request.user,product_id=prod_id)
-        if cart_check:
-            cart_item=Cart_Model.objects.get(user=request.user,product_id=prod_id)
-            cart_item.delete()
-            return JsonResponse({'status': "Item removed successfully"})
+        if request.user.is_authenticated:
+            prod_id=int(request.POST.get('product_id'))
+            cart_check=Cart_Model.objects.filter(user=request.user,product_id=prod_id).exists()
+            if cart_check:
+                cart_item=Cart_Model.objects.get(user=request.user,product_id=prod_id)
+                cart_item.delete()
+                return JsonResponse({'status': "Item removed successfully"})
+        else:
+            return JsonResponse({'status': "Login to continue"})
     return redirect('index')

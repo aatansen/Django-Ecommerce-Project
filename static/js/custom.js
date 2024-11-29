@@ -63,23 +63,90 @@ $(document).ready(function () {
         });
     });
 
-    $('.delete-cart-item').click(function (e) { 
+    // delete cart item
+    $('.delete-cart-item').click(function (e) {
         e.preventDefault();
-        var product_id=$(this).closest('.product_data').find('.prod_id').val();
-        var token=$('input[name=csrfmiddlewaretoken]').val();
 
+        // Cache the specific cart item row and CSRF token
+        var $cartItem = $(this).closest('.product_data');
+        var product_id = $cartItem.find('.prod_id').val();
+        var token = $('input[name=csrfmiddlewaretoken]').val();
+
+        // Send AJAX request to delete the item
         $.ajax({
             method: "POST",
             url: "/delete-cart-item/",
             data: {
+                'product_id': product_id,
+                csrfmiddlewaretoken: token,
+            },
+            success: function (response) {
+                // Show success message
+                alertify.success(response.status);
+
+                // Remove the specific cart item row from the DOM
+                $cartItem.remove();
+
+                // Check if the cart is now empty and display a message
+                if ($('.product_data').length === 0) {
+                    $('.card-data').html('<h4>Your cart is empty</h4>');
+                }
+            },
+            error: function () {
+                alertify.error("Failed to remove the item. Please try again.");
+            }
+        });
+    });
+
+    // add to wishlist button functionality
+    $('.addToWishlistBtn').click(function (e) { 
+        e.preventDefault();
+        var product_id=$(this).closest('.product_data').find('.prod_id').val();
+        var token=$('input[name=csrfmiddlewaretoken]').val();
+        $.ajax({
+            method: "POST",
+            url: "/add-to-wishlist/",
+            data: {
                 'product_id':product_id,
-                csrfmiddlewaretoken:token,
+                csrfmiddlewaretoken: token,
             },
             success: function (response) {
                 alertify.success(response.status)
+            }
+        });
+    });
 
-                // reload only card body on remove item 
-                $('.card-data').load(location.href+" .card-data");
+    // delete wishlist item
+    $('.delete-wishlist-item').click(function (e) {
+        e.preventDefault();
+
+        // Cache the specific wishlist item row and CSRF token
+        var $wishlistItem = $(this).closest('.product_data');
+        var product_id = $wishlistItem.find('.prod_id').val();
+        var token = $('input[name=csrfmiddlewaretoken]').val();
+
+        // Send AJAX request to delete the item
+        $.ajax({
+            method: "POST",
+            url: "/delete-wishlist-item/",
+            data: {
+                'product_id': product_id,
+                csrfmiddlewaretoken: token,
+            },
+            success: function (response) {
+                // Show success message
+                alertify.success(response.status);
+
+                // Remove the specific wishlist item row from the DOM
+                $wishlistItem.remove();
+
+                // Check if the wishlist is now empty and display a message
+                if ($('.product_data').length === 0) {
+                    $('.card-data').html('<h4>Your wishlist is empty</h4>');
+                }
+            },
+            error: function () {
+                alertify.error("Failed to remove the item. Please try again.");
             }
         });
     });

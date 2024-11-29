@@ -44,6 +44,10 @@
     - [Display Cart Item](#display-cart-item)
     - [Update Product Quantity in Cart](#update-product-quantity-in-cart)
     - [Remove Item from Cart](#remove-item-from-cart)
+  - [Product Wishlist](#product-wishlist)
+    - [Wishlist View Page](#wishlist-view-page)
+    - [Add to Wishlist jQuery Ajax](#add-to-wishlist-jquery-ajax)
+    - [Remove Item from Wishlist](#remove-item-from-wishlist)
 
 ## Project Setup
 
@@ -1375,6 +1379,11 @@
 - Create view function in `store_app/controller/cart.py`
 
   ```py
+  ...
+  from django.contrib.auth.decorators import login_required
+  ...
+
+  @login_required(login_url='login_page')
   def cart_view(request):
       cart=Cart_Model.objects.filter(user=request.user)
       context={
@@ -1382,6 +1391,8 @@
       }
       return render(request,'store/cart.html',context)
   ```
+
+  - Here `login_required` decorator is used to show the cart only login user
 
 - Create html page for cart `store_app/templates/store/cart.html`
 
@@ -1543,16 +1554,239 @@
   - `path('delete-cart-item/',cart.delete_cart_item,name="delete_cart_item"),`
 - Create view in `store_app/controller/cart.py`
 
+> [!NOTE]
+>
+> Note that this won't work properly when multiple item occur. `jqon` instead of `jqclick` can be used to solve this issue
+>
+>```js
+>  $(document).on('click','.delete-cart-item', function (e) {
+>    //...rest of the code remain same
+>  });
+>```
+>
+> In future code implementation `jqclick` is fixed using different way for both cart & wish list delete
+
   ```py
   def delete_cart_item(request):
       if request.method=='POST':
-          prod_id=int(request.POST.get('product_id'))
-          cart_check=Cart_Model.objects.filter(user=request.user,product_id=prod_id)
-          if cart_check:
-              cart_item=Cart_Model.objects.get(user=request.user,product_id=prod_id)
-              cart_item.delete()
-              return JsonResponse({'status': "Item removed successfully"})
+          if request.user.is_authenticated:
+              prod_id=int(request.POST.get('product_id'))
+              cart_check=Cart_Model.objects.filter(user=request.user,product_id=prod_id).exists()
+              if cart_check:
+                  cart_item=Cart_Model.objects.get(user=request.user,product_id=prod_id)
+                  cart_item.delete()
+                  return JsonResponse({'status': "Item removed successfully"})
+          else:
+              return JsonResponse({'status': "Login to continue"})
       return redirect('index')
   ```
+
+[⬆️ Go to Context](#context)
+
+## Product Wishlist
+
+### Wishlist View Page
+
+- Create wishlist model `Wishlist_Model`
+
+  ```py
+  class Wishlist_Model(models.Model):
+      user=models.ForeignKey(User, on_delete=models.CASCADE)
+      product=models.ForeignKey(Product_Model, on_delete=models.CASCADE)
+      created_at=models.DateTimeField(auto_now_add=True)
+      
+      def __str__(self):
+          return f"{self.user} added {self.product} to their Wishlist"
+  ```
+
+- Register in `admin.py`
+  - `admin.site.register(Wishlist_Model)`
+- Create `store_app/controller/wishlist.py`
+
+  ```py
+  from django.shortcuts import render,redirect
+  from django.http import JsonResponse
+  from django.contrib.auth.decorators import login_required
+  from store_app.models import *
+
+  @login_required(login_url='login_page')
+  def wishlist_view(request):
+      wishlist=Wishlist_Model.objects.filter(user=request.user)
+      context={
+          'wishlist':wishlist,
+      }
+      return render(request,'store/wishlist.html',context)
+  ```
+
+- Create url path in `urls.py`
+  - `path('wishlist/',wishlist.wishlist_view,name="wishlist_view"),`
+
+- Create `store_app/templates/store/wishlist.html` page
+
+  ```jinja
+  {% extends 'store/layouts/main.html' %}
+
+  {% block content %}
+  <div class="py-3 bg-primary">
+      <div class="container">
+          <a class="text-white" href="{% url 'index' %}">Home /</a>
+          <a class="text-white" href="{% url 'wishlist_view' %}">Wishlist /</a>
+      </div>
+  </div>
+
+  <div class="py-5">
+      <div class="container">
+          <div class="row">
+              <div class="col-md-12">
+                  <div class="card shadow">
+                      <div class="card-body card-data">
+                          {% if wishlist %}
+                              {% for item in wishlist %}
+                                  <div class="row product_data">
+                                      <div class="col-md-2 my-auto">
+                                          <img src="{{item.product.product_image.url}}" height="70px" width="70px" alt="product image">
+                                      </div>
+                                      <div class="col-md-3 my-auto">
+                                          <h6>{{item.product.name}}</h6>
+                                      </div>
+                                      <div class="col-md-2 my-auto">
+                                          <h6>$ {{item.product.selling_price}}</h6>
+                                      </div>
+                                      <div class="col-md-3 my-auto">
+                                          <input type="hidden" class="prod_id" value="{{item.product_id}}">
+                                          {% csrf_token %}
+                                          <a href="{% url 'product_view' item.product.category.slug item.product.slug %}" target="_blank" class="btn btn-primary"> <i class="fa fa-eye"></i> View product</a>
+                                      </div>
+                                      <div class="col-md-2 my-auto">
+                                          <button class="btn btn-danger delete-wishlist-item"> <i class="fa fa-trash"></i> Remove</button>
+                                      </div>
+                                  </div>
+                              {% endfor %}
+                          {% else %}
+                              <h4>Your wishlist is empty</h4>
+                          {% endif %}
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  {% endblock content %}
+  ```
+
+[⬆️ Go to Context](#context)
+
+### Add to Wishlist jQuery Ajax
+
+- Create add functionalities in `static/js/custom.js`
+
+  ```js
+  // add to wishlist button functionality
+  $('.addToWishlistBtn').click(function (e) { 
+      e.preventDefault();
+      var product_id=$(this).closest('.product_data').find('.prod_id').val();
+      var token=$('input[name=csrfmiddlewaretoken]').val();
+      $.ajax({
+          method: "POST",
+          url: "/add-to-wishlist/",
+          data: {
+              'product_id':product_id,
+              csrfmiddlewaretoken: token,
+          },
+          success: function (response) {
+              alertify.success(response.status)
+          }
+      });
+  });
+  ```
+
+- Create view in `store_app/controller/wishlist.py`
+
+  ```py
+  def add_to_wishlist(request):
+      if request.method=='POST':
+          if request.user.is_authenticated:
+              prod_id=int(request.POST.get('product_id'))
+              product_check=Product_Model.objects.get(id=prod_id)
+              if product_check:
+                  wish_item=Wishlist_Model.objects.filter(user=request.user,product_id=prod_id)
+                  if wish_item.exists():
+                      return JsonResponse({'status': "Item already in wishlist"})
+                  else:
+                      wish=Wishlist_Model.objects.create(user=request.user,product_id=prod_id)
+                      wish.save()
+                      return JsonResponse({'status': "Item Added to wishlist"})
+              else:
+                  return JsonResponse({'status': "No such product found"})
+                  
+      return redirect('index')
+  ```
+
+- Add url path `path('add-to-wishlist/',wishlist.add_to_wishlist,name="add_to_wishlist"),`
+
+[⬆️ Go to Context](#context)
+
+### Remove Item from Wishlist
+
+- Add delete functionality in `static/js/custom.js`
+
+  ```js
+  // delete wishlist item
+  $('.delete-wishlist-item').click(function (e) {
+      e.preventDefault();
+
+      // Cache the specific wishlist item row and CSRF token
+      var $wishlistItem = $(this).closest('.product_data');
+      var product_id = $wishlistItem.find('.prod_id').val();
+      var token = $('input[name=csrfmiddlewaretoken]').val();
+
+      // Send AJAX request to delete the item
+      $.ajax({
+          method: "POST",
+          url: "/delete-wishlist-item/",
+          data: {
+              'product_id': product_id,
+              csrfmiddlewaretoken: token,
+          },
+          success: function (response) {
+              // Show success message
+              alertify.success(response.status);
+
+              // Remove the specific wishlist item row from the DOM
+              $wishlistItem.remove();
+
+              // Check if the wishlist is now empty and display a message
+              if ($('.product_data').length === 0) {
+                  $('.card-data').html('<h4>Your wishlist is empty</h4>');
+              }
+          },
+          error: function () {
+              alertify.error("Failed to remove the item. Please try again.");
+          }
+      });
+  });
+  ```
+
+- Create view function for `delete_wishlist_item` inside `wishlist.py`
+
+  ```py
+  def delete_wishlist_item(request):
+      if request.method=='POST':
+          if request.user.is_authenticated:
+              prod_id=int(request.POST.get('product_id'))
+              wishlist_check=Wishlist_Model.objects.filter(user=request.user,product_id=prod_id)
+              if wishlist_check:
+                  wishlist_item=Wishlist_Model.objects.get(user=request.user,product_id=prod_id)
+                  wishlist_item.delete()
+                  return JsonResponse({'status': "Product removed from wishlist"})
+              else:
+                  return JsonResponse({'status': "Product not found in wishlist"})
+          else:
+              return JsonResponse({'status': "Login to continue"})
+      return redirect('index')
+  ```
+
+- Add url path `path('delete-wishlist-item/',wishlist.delete_wishlist_item,name="delete_wishlist_item"),`
 
 [⬆️ Go to Context](#context)

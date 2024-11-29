@@ -13,3 +13,4 @@ class ProductModelAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "category", "created_at")
     
 admin.site.register(Cart_Model)
+admin.site.register(Wishlist_Model)
