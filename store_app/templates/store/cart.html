@@ -45,6 +45,9 @@
                                     </div>
                                 </div>
                             {% endfor %}
+                            <div class="text-center">
+                            <a href="{% url 'checkout_view' %}" class="btn btn-outline-success">Checkout</a>
+                            </div>
                         {% else %}
                             <h4>Your cart is empty</h4>
                         {% endif %}

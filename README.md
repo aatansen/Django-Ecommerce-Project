@@ -49,6 +49,8 @@
     - [Add to Wishlist jQuery Ajax](#add-to-wishlist-jquery-ajax)
     - [Remove Item from Wishlist](#remove-item-from-wishlist)
   - [Navbar Item Active](#navbar-item-active)
+  - [Product Checkout](#product-checkout)
+    - [Adding Checkout Page](#adding-checkout-page)
 
 ## Project Setup
 
@@ -1823,5 +1825,143 @@
   }
   ```
 
+[⬆️ Go to Context](#context)
+
+## Product Checkout
+
+### Adding Checkout Page
+
+- Add checkout button in `cart.html`
+  - `<a href="{% url 'checkout_view' %}" class="btn btn-outline-success">Checkout</a>`
+- Create url path for `checkout_view`
+  - `path('checkout/',checkout.checkout_view,name="checkout_view"),`
+- Create view function in `store_app/controller/checkout.py`
+
+  ```py
+  from django.shortcuts import render,redirect
+  from django.contrib.auth.decorators import login_required
+  from store_app.models import *
+
+  def checkout_view(request):
+      rawCart=Cart_Model.objects.filter(user=request.user)
+      for item in rawCart:
+          if item.product_qty>item.product.quantity:
+              Cart_Model.objects.delete(id=item.id)
+      cartItems=Cart_Model.objects.filter(user=request.user)
+      total_price=0
+      for item in cartItems:
+          total_price=total_price+item.product.selling_price*item.product_qty
+
+      context={
+          'cartItems':cartItems,
+          'total_price':total_price,
+      }
+      return render(request,'store/checkout.html',context)
+  ```
+
+  > This is initial view for cart, this will be extended with user information
+- Create html page
+
+  ```jinja
+  {% extends 'store/layouts/main.html' %}
+
+  {% block content %}
+  <div class="py-3 bg-primary">
+      <div class="container">
+          <a class="text-white" href="{% url 'index' %}">Home /</a>
+          <a class="text-white" href="{% url 'checkout_view' %}">Checkout /</a>
+      </div>
+  </div>
+
+  <div class="container mt-3">
+      <div class="row">
+          <div class="col-md-7">
+              <div class="card shadow">
+                  <div class="card-body">
+                      <h6>Basic Details</h6>
+                      <hr>
+                      <div class="row">
+                          <div class="col-md-6">
+                              <label for="">First Name</label>
+                              <input type="text" class="form-control" placeholder="Enter first name">
+                          </div>
+                          <div class="col-md-6">
+                              <label for="">Last Name</label>
+                              <input type="text" class="form-control" placeholder="Enter last name">
+                          </div>
+                          <div class="col-md-6 mt-2">
+                              <label for="">Phone</label>
+                              <input type="text" class="form-control" placeholder="Enter Phone">
+                          </div>
+                          <div class="col-md-12 mt-2">
+                              <label for="">Address</label>
+                              <textarea class="form-control" placeholder="Enter Address"></textarea>
+                          </div>
+                          <div class="col-md-6 mt-2">
+                              <label for="">City</label>
+                              <input type="text" class="form-control" placeholder="Enter City">
+                          </div>
+                          <div class="col-md-6 mt-2">
+                              <label for="">State</label>
+                              <input type="text" class="form-control" placeholder="Enter State">
+                          </div>
+                          <div class="col-md-6 mt-2">
+                              <label for="">Country</label>
+                              <input type="text" class="form-control" placeholder="Enter Country">
+                          </div>
+                          <div class="col-md-6 mt-2">
+                              <label for="">Pin Code</label>
+                              <input type="text" class="form-control" placeholder="Enter Pin Code">
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          <div class="col-md-5">
+              <div class="card shadow">
+                  <div class="card-body">
+                      <h6>Order Summary</h6>
+                      <hr>
+                      {% if cartItems %}
+                          <table class="table table-stripeds table-bordereds">
+                              <thead>
+                                  <tr>
+                                      <th>Product Image</th>
+                                      <th>Product</th>
+                                      <th>Qty.</th>
+                                      <th>Price</th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  
+                                  {% for item in cartItems %}
+                                      <tr>
+                                          <td>
+                                              <img src="{{item.product.product_image.url}}" height="50px" width="50px" class="me-2" alt="">
+                                          </td>
+                                          <td>{{item.product.name}}</td>
+                                          <td>{{item.product_qty}}</td>
+                                          <td>$ {{item.product.selling_price}}</td>
+                                      </tr>
+                                  {% endfor %}
+                              </tbody>
+                          </table>
+                          <h6 class="fw-bold">Grand Total
+                              <span class="float-end fw-bold">$ {{total_price}} </span>
+                          </h6>
+                          <div class="mt-3">
+                              <a href="" class="btn btn-success w-100">COD | Place Order</a>
+                          </div>
+                      {% else %}
+                          <h4>Your cart is empty</h4>
+                      {% endif %}
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  {% endblock content %}
+  ```
 
 [⬆️ Go to Context](#context)
