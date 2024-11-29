@@ -14,6 +14,7 @@ urlpatterns=[
     path('logout/',authview.logoutpage,name="logout_page"),
 
     path('add-to-cart/',cart.add_to_cart,name="add_to_cart"),
+    path('cart/',cart.cart_view,name="cart_view"),
 ]
 
 if settings.DEBUG:

@@ -39,7 +39,9 @@
     - [User Login](#user-login)
     - [Log out](#log-out)
     - [Showing Messages using Alertify JS](#showing-messages-using-alertify-js)
+  - [Product Cart](#product-cart)
     - [Add to Cart using JQuery Ajax](#add-to-cart-using-jquery-ajax)
+    - [Display Cart Item](#display-cart-item)
 
 ## Project Setup
 
@@ -727,7 +729,7 @@
 
 - Collection page breadcrumbs
   
-  ```html
+  ```jinja
   <div class="py-3 bg-primary">
       <div class="container">
           <a class="text-white" href="{% url 'index' %}">Home /</a>
@@ -1275,6 +1277,8 @@
 
 [⬆️ Go to Context](#context)
 
+## Product Cart
+
 ### Add to Cart using JQuery Ajax
 
 - Create `Cart_Model` model in `models.py`
@@ -1350,6 +1354,97 @@
               return JsonResponse({'status':"Login to Continue"})
       
       return redirect('index')
-    ```
+  ```
+
+[⬆️ Go to Context](#context)
+
+### Display Cart Item
+
+- Add cart in `store_app/templates/store/inc/navbar.html` navbar
+
+  ```jinja
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'cart_view' %}">Cart</a>
+  </li>
+  ```
+
+- Create url path for `cart_view`
+  - path('cart/',cart.cart_view,name="cart_view"),
+- Create view function in `store_app/controller/cart.py`
+
+  ```py
+  def cart_view(request):
+      cart=Cart_Model.objects.filter(user=request.user)
+      context={
+          'cart':cart,
+      }
+      return render(request,'store/cart.html',context)
+  ```
+
+- Create html page for cart `store_app/templates/store/cart.html`
+
+  ```jinja
+  {% extends 'store/layouts/main.html' %}
+
+  {% block content %}
+  <div class="py-3 bg-primary">
+      <div class="container">
+          <a class="text-white" href="{% url 'index' %}">Home /</a>
+          <a class="text-white" href="{% url 'cart_view' %}">Cart /</a>
+      </div>
+  </div>
+
+  <div class="py-5">
+      <div class="container">
+          <div class="row">
+              <div class="col-md-12">
+                  <div class="card shadow">
+                      <div class="card-body">
+                          {% if cart %}
+                              {% for item in cart %}
+                                  <div class="row product_data">
+                                      <div class="col-md-2 my-auto">
+                                          <img src="{{item.product.product_image.url}}" height="70px" width="70px" alt="product image">
+                                      </div>
+                                      <div class="col-md-3 my-auto">
+                                          <h6>{{item.product.name}}</h6>
+                                      </div>
+                                      <div class="col-md-2 my-auto">
+                                          <h6>$ {{item.product.selling_price}}</h6>
+                                      </div>
+                                      <div class="col-md-3 my-auto">
+                                          <input type="hidden" class="prod_id" value="{{item.product_id}}">
+                                          {% csrf_token %}
+                                          {% if item.product.quantity >= item.product_qty %}
+                                              <label for="Quantity">Quantity</label>
+                                              <div class="input-group text-center mb-3" style="width: 130px;">
+                                                  <button class="input-group-text decrement-btn">-</button>
+                                                  <input type="text" name="quantity" class="form-control qty-input text-center" value="1">
+                                                  <button class="input-group-text increment-btn">+</button>
+                                              </div>
+                                              {% else %}
+                                              <h6>Out of Stock</h6>
+                                          {% endif %}
+                                      </div>
+                                      <div class="col-md-2 my-auto">
+                                          <button class="btn btn-danger delete-cart-item"> <i class="fa fa-trash"></i> Remove</button>
+                                      </div>
+                                  </div>
+                              {% endfor %}
+                          {% else %}
+                              <h4>Your cart is empty</h4>
+                          {% endif %}
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+  {% endblock content %}
+  ```
+
+  - It is similar to `view.html` of the product
+  - `product_data` class should be inside for loop otherwise increment and decrement won't work properly
+  - JS functionalities are written in `static/js/custom.js` file
 
 [⬆️ Go to Context](#context)
