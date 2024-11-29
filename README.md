@@ -38,7 +38,7 @@
     - [Adding Bootstrap in Register Form](#adding-bootstrap-in-register-form)
     - [User Login](#user-login)
     - [Log out](#log-out)
-    - [Showing Messages using Alertify JS](#showing-messages-using-alertify-js)
+  - [Showing Django Messages using Alertify JS](#showing-django-messages-using-alertify-js)
   - [Product Cart](#product-cart)
     - [Add to Cart using JQuery Ajax](#add-to-cart-using-jquery-ajax)
     - [Display Cart Item](#display-cart-item)
@@ -48,6 +48,7 @@
     - [Wishlist View Page](#wishlist-view-page)
     - [Add to Wishlist jQuery Ajax](#add-to-wishlist-jquery-ajax)
     - [Remove Item from Wishlist](#remove-item-from-wishlist)
+  - [Navbar Item Active](#navbar-item-active)
 
 ## Project Setup
 
@@ -1250,7 +1251,7 @@
 
 [⬆️ Go to Context](#context)
 
-### Showing Messages using [Alertify JS](https://alertifyjs.com/)
+## Showing Django Messages using [Alertify JS](https://alertifyjs.com/)
 
 - Go to [Alertify JS Guide](https://alertifyjs.com/guide.html)
 - Get AlertifyJS CDN in `store_app/templates/store/layouts/main.html`
@@ -1788,5 +1789,39 @@
   ```
 
 - Add url path `path('delete-wishlist-item/',wishlist.delete_wishlist_item,name="delete_wishlist_item"),`
+
+[⬆️ Go to Context](#context)
+
+## Navbar Item Active
+
+- Using `resolver_match` url name
+
+  ```jinja
+  ...
+  <li class="nav-item">
+    <a class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}" aria-current="page" href="{% url 'index' %}">Home</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if request.resolver_match.url_name == 'collections' %}active{% endif %}" href="{% url 'collections' %}">Collections</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if request.resolver_match.url_name == 'cart_view' %}active{% endif %}" href="{% url 'cart_view' %}">Cart</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if request.resolver_match.url_name == 'wishlist_view' %}active{% endif %}" href="{% url 'wishlist_view' %}">Wishlist</a>
+  </li>
+  ...
+  ```
+
+  > We can also use request.path where directly path is given `request.path == '/'`
+
+- To hightlist the active nav font bold style is added in master template style section
+
+  ```css
+  .active{
+      font-weight: 800;
+  }
+  ```
+
 
 [⬆️ Go to Context](#context)
