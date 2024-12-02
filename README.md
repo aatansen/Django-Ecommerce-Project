@@ -51,6 +51,7 @@
   - [Navbar Item Active](#navbar-item-active)
   - [Product Checkout](#product-checkout)
     - [Adding Checkout Page](#adding-checkout-page)
+    - [Adding Custom CSS](#adding-custom-css)
 
 ## Project Setup
 
@@ -1963,5 +1964,32 @@
 
   {% endblock content %}
   ```
+
+[⬆️ Go to Context](#context)
+
+### Adding Custom CSS
+
+- Create a class in `store_app/templates/store/checkout.html`
+  - `<div class="card shadow checkoutform">`
+- Create `static/css/custom.css`
+
+  ```css
+    .checkoutform label{
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .checkoutform input{
+        font-size: 14px;
+    }
+  ```
+
+- Now add this `custom.css` in master template `main.html`
+
+    ```jinja
+    ...
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    ...
+    ```
 
 [⬆️ Go to Context](#context)
