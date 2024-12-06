@@ -9,6 +9,8 @@
 </div>
 
 <div class="container mt-3">
+<form action="{% url 'place_order' %}" method="POST">
+    {% csrf_token %}
     <div class="row">
         <div class="col-md-7">
             <div class="card shadow checkoutform">
@@ -17,38 +19,43 @@
                     <hr>
                     <div class="row">
                         <div class="col-md-6">
-                            <label for="">First Name</label>
-                            <input type="text" class="form-control" placeholder="Enter first name">
+                            <label for="fname">First Name</label>
+                            <input type="text" required class="form-control" placeholder="Enter first name" id="fname" name="fname" value="{{ order.fname }}">
                         </div>
                         <div class="col-md-6">
-                            <label for="">Last Name</label>
-                            <input type="text" class="form-control" placeholder="Enter last name">
+                            <label for="lname">Last Name</label>
+                            <input type="text" required class="form-control" placeholder="Enter last name" id="lname" name="lname" value="{{ order.lname }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email">Email</label>
+                            <input type="email" required class="form-control" placeholder="Enter last name" id="email" name="email" value="{{ order.lname }}">
                         </div>
                         <div class="col-md-6 mt-2">
-                            <label for="">Phone</label>
-                            <input type="text" class="form-control" placeholder="Enter Phone">
+                            <label for="phone">Phone</label>
+                            <input type="text" required class="form-control" placeholder="Enter Phone" id="phone" name="phone" value="{{ order.phone }}">
                         </div>
                         <div class="col-md-12 mt-2">
-                            <label for="">Address</label>
-                            <textarea class="form-control" placeholder="Enter Address"></textarea>
+                            <label for="address">Address</label>
+                            <textarea required class="form-control" placeholder="Enter Address" id="address" name="address">{{ order.address }}</textarea>
                         </div>
                         <div class="col-md-6 mt-2">
-                            <label for="">City</label>
-                            <input type="text" class="form-control" placeholder="Enter City">
+                            <label for="city">City</label>
+                            <input type="text" required class="form-control" placeholder="Enter City" id="city" name="city" value="{{ order.city }}">
                         </div>
                         <div class="col-md-6 mt-2">
-                            <label for="">State</label>
-                            <input type="text" class="form-control" placeholder="Enter State">
+                            <label for="state">State</label>
+                            <input type="text" required class="form-control" placeholder="Enter State" id="state" name="state" value="{{ order.state }}">
                         </div>
                         <div class="col-md-6 mt-2">
-                            <label for="">Country</label>
-                            <input type="text" class="form-control" placeholder="Enter Country">
+                            <label for="country">Country</label>
+                            <input type="text" required class="form-control" placeholder="Enter Country" id="country" name="country" value="{{ order.country }}">
                         </div>
                         <div class="col-md-6 mt-2">
-                            <label for="">Pin Code</label>
-                            <input type="text" class="form-control" placeholder="Enter Pin Code">
+                            <label for="pin_code">Pin Code</label>
+                            <input type="text" required class="form-control" placeholder="Enter Pin Code" id="pin_code" name="pin_code" value="{{ order.pin_code }}">
                         </div>
                     </div>
+                    
                 </div>
             </div>
         </div>
@@ -84,8 +91,9 @@
                         <h6 class="fw-bold">Grand Total
                             <span class="float-end fw-bold">$ {{total_price}} </span>
                         </h6>
+                        <input type="hidden" value="COD" name="payment_mode">
                         <div class="mt-3">
-                            <a href="" class="btn btn-success w-100">COD | Place Order</a>
+                            <button type="submit" class="btn btn-success w-100">COD | Place Order</button>
                         </div>
                     {% else %}
                         <h4>Your cart is empty</h4>
@@ -94,6 +102,7 @@
             </div>
         </div>
     </div>
+</form>
 </div>
 
 {% endblock content %}

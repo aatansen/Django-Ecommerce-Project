@@ -26,6 +26,7 @@ urlpatterns=[
     
     
     path('checkout/',checkout.checkout_view,name="checkout_view"),
+    path('place-order/',checkout.place_order,name="place_order"),
 ]
 
 if settings.DEBUG:

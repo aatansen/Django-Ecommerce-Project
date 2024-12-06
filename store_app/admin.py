@@ -14,3 +14,5 @@ class ProductModelAdmin(admin.ModelAdmin):
     
 admin.site.register(Cart_Model)
 admin.site.register(Wishlist_Model)
+admin.site.register(Order_Model)
+admin.site.register(Order_Item_Model)

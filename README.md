@@ -52,6 +52,7 @@
   - [Product Checkout](#product-checkout)
     - [Adding Checkout Page](#adding-checkout-page)
     - [Adding Custom CSS](#adding-custom-css)
+    - [Create Order and Order functionality](#create-order-and-order-functionality)
 
 ## Project Setup
 
@@ -1990,6 +1991,118 @@
     ...
     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
     ...
+    ```
+
+[⬆️ Go to Context](#context)
+
+### Create Order and Order functionality
+
+- Order Model
+
+  ```py
+  class Order_Model(models.Model):
+      user=models.ForeignKey(User,on_delete=models.CASCADE)
+      fname=models.CharField(max_length=150,null=False)
+      lname=models.CharField(max_length=150,null=False)
+      email=models.CharField(max_length=150,null=False)
+      phone=models.CharField(max_length=150,null=False)
+      address=models.TextField(null=False)
+      city=models.CharField(max_length=150,null=False)
+      state=models.CharField(max_length=150,null=False)
+      country=models.CharField(max_length=150,null=False)
+      pin_code=models.CharField(max_length=150,null=False)
+      total_price=models.FloatField(null=False)
+      payment_mode=models.CharField(max_length=150,null=False)
+      payment_id=models.CharField(max_length=250,null=True)
+      order_statuses=(
+          ('Pending','Pending'),
+          ('Out For Shipping','Out For Shipping'),
+          ('Completed','Completed'),
+      )
+      status=models.CharField(max_length=150,choices=order_statuses,default=order_statuses[0][1])
+      message=models.TextField(null=True)
+      tracking_no=models.CharField(max_length=150,null=True)
+      created_at=models.DateTimeField(auto_now_add=True)
+      updated_at=models.DateTimeField(auto_now=True)
+      
+      def __str__(self):
+          return f"{self.id} - {self.tracking_no}"
+  ```
+
+- Order Item Model
+
+  ```py
+  class Order_Item_Model(models.Model):
+      order=models.ForeignKey(Order_Model,on_delete=models.CASCADE)
+      product=models.ForeignKey(Product_Model,on_delete=models.CASCADE)
+      price=models.FloatField(null=False)
+      quantity=models.IntegerField(null=False)
+      
+      def __str__(self):
+          return f"{self.order.id} - {self.order.tracking_no}"
+  ```
+
+- Edit `store_app/templates/store/checkout.html` and add form tag with name attributes in each field
+
+- Creating url for placing order
+  - `path('place-order/',checkout.place_order,name="place_order"),`
+- Creating view for placing order in `store_app/controller/checkout.py`
+
+  ```py
+  @login_required(login_url='login_page')
+  def place_order(request):
+      if request.method=="POST":
+          new_order = Order_Model()
+          new_order.user = request.user
+          new_order.fname = request.POST.get('fname')
+          new_order.lname = request.POST.get('lname')
+          new_order.email = request.POST.get('email')
+          new_order.phone = request.POST.get('phone')
+          new_order.address = request.POST.get('address')
+          new_order.city = request.POST.get('city')
+          new_order.state = request.POST.get('state')
+          new_order.country = request.POST.get('country')
+          new_order.pin_code = request.POST.get('pin_code')
+
+          new_order.payment_mode = request.POST.get('payment_mode')
+          
+          cart = Cart_Model.objects.filter(user=request.user)
+          cart_total_price=0
+          for item in cart:
+              cart_total_price=cart_total_price+item.product.selling_price*item.product_qty
+          new_order.total_price = cart_total_price
+          
+          new_order.tracking_no = str(uuid.uuid4())
+          new_order.save()
+          
+          new_order_items=Cart_Model.objects.filter(user=request.user)
+          for item in new_order_items:
+              Order_Item_Model.objects.create(
+                  order=new_order,
+                  product=item.product,
+                  price=item.product.selling_price,
+                  quantity=item.product_qty,
+              )
+              
+              # To decrease the product quantity from available stock
+              order_product = Product_Model.objects.filter(id=item.product_id).first()
+              order_product.quantity=order_product.quantity - item.product_qty
+              order_product.save()
+              
+          # clear user cart
+          Cart_Model.objects.filter(user=request.user).delete()
+          messages.success(request,'Your order has been place successfully')
+
+      return redirect('/')
+  ```
+
+  - Here we can also use old ways of creating tracking no (but using `uuid` is recommended)
+
+    ```py
+    track_no = 'aatansen' + str(random.randint(1111111, 9999999))
+    while Order_Model.objects.filter(tracking_no=track_no).exists():  # Check if it exists
+        track_no = 'aatansen' + str(random.randint(1111111, 9999999))  # Generate a new one
+    new_order.tracking_no = track_no
     ```
 
 [⬆️ Go to Context](#context)
