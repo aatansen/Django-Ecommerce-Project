@@ -53,6 +53,7 @@
     - [Adding Checkout Page](#adding-checkout-page)
     - [Adding Custom CSS](#adding-custom-css)
     - [Create Order and Order functionality](#create-order-and-order-functionality)
+    - [Auto Fill User Data in Checkout (Profile Model)](#auto-fill-user-data-in-checkout-profile-model)
 
 ## Project Setup
 
@@ -2104,5 +2105,71 @@
         track_no = 'aatansen' + str(random.randint(1111111, 9999999))  # Generate a new one
     new_order.tracking_no = track_no
     ```
+
+[⬆️ Go to Context](#context)
+
+### Auto Fill User Data in Checkout (Profile Model)
+
+- Create and register a profile model `Profile_Model`
+
+    ```py
+    class Profile_Model(models.Model):
+        user=models.OneToOneField(User,on_delete=models.CASCADE)
+        phone=models.CharField(max_length=150,null=False)
+        address=models.TextField(null=False)
+        city=models.CharField(max_length=150,null=False)
+        state=models.CharField(max_length=150,null=False)
+        country=models.CharField(max_length=150,null=False)
+        pin_code=models.CharField(max_length=150,null=False)
+        created_at=models.DateTimeField(auto_now_add=True)
+        updated_at=models.DateTimeField(auto_now=True)
+        
+        def __str__(self):
+            return f"{self.user.username} - {self.user.email}"
+    ```
+
+- In `store_app/controller/checkout.py` file edit `place_order` function to save user info in `Profile_Model`
+
+    ```py
+    @login_required(login_url='login_page')
+    def place_order(request):
+        if request.method=="POST":
+            
+            current_user=User.objects.filter(id=request.user.id).first()
+            if not current_user.first_name:
+                current_user.first_name=request.POST.get('fname')
+                current_user.last_name=request.POST.get('lname')
+                current_user.save()
+            
+            if not Profile_Model.objects.filter(user=request.user).exists():
+                user_profile=Profile_Model()
+                user_profile.user=request.user            
+                user_profile.phone = request.POST.get('phone')
+                user_profile.address = request.POST.get('address')
+                user_profile.city = request.POST.get('city')
+                user_profile.state = request.POST.get('state')
+                user_profile.country = request.POST.get('country')
+                user_profile.pin_code = request.POST.get('pin_code')
+                user_profile.save()
+            
+            ...
+        return redirect('/')
+    ```
+
+- Now return the profile model data in checkout page
+
+    ```py
+    def checkout_view(request):
+        ...
+        user_profile=Profile_Model.objects.filter(user=request.user).first()
+        
+        context={
+            ...
+            'user_profile':user_profile,
+        }
+        return render(request,'store/checkout.html',context)
+    ```
+
+- In `store_app/templates/store/checkout.html` use value attribute to show the user profile data
 
 [⬆️ Go to Context](#context)

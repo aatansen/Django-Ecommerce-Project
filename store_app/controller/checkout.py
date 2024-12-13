@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from store_app.models import *
 import uuid
 from django.contrib import messages
+from django.contrib.auth.models import User
 
 def checkout_view(request):
     rawCart=Cart_Model.objects.filter(user=request.user)
@@ -14,15 +15,36 @@ def checkout_view(request):
     for item in cartItems:
         total_price=total_price+item.product.selling_price*item.product_qty
 
+    user_profile=Profile_Model.objects.filter(user=request.user).first()
+    
     context={
         'cartItems':cartItems,
         'total_price':total_price,
+        'user_profile':user_profile,
     }
     return render(request,'store/checkout.html',context)
 
 @login_required(login_url='login_page')
 def place_order(request):
     if request.method=="POST":
+        
+        current_user=User.objects.filter(id=request.user.id).first()
+        if not current_user.first_name:
+            current_user.first_name=request.POST.get('fname')
+            current_user.last_name=request.POST.get('lname')
+            current_user.save()
+        
+        if not Profile_Model.objects.filter(user=request.user).exists():
+            user_profile=Profile_Model()
+            user_profile.user=request.user            
+            user_profile.phone = request.POST.get('phone')
+            user_profile.address = request.POST.get('address')
+            user_profile.city = request.POST.get('city')
+            user_profile.state = request.POST.get('state')
+            user_profile.country = request.POST.get('country')
+            user_profile.pin_code = request.POST.get('pin_code')
+            user_profile.save()
+        
         new_order = Order_Model()
         new_order.user = request.user
         new_order.fname = request.POST.get('fname')

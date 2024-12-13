@@ -117,3 +117,17 @@ class Order_Item_Model(models.Model):
     
     def __str__(self):
         return f"{self.order.id} - {self.order.tracking_no}"
+
+class Profile_Model(models.Model):
+    user=models.OneToOneField(User,on_delete=models.CASCADE)
+    phone=models.CharField(max_length=150,null=False)
+    address=models.TextField(null=False)
+    city=models.CharField(max_length=150,null=False)
+    state=models.CharField(max_length=150,null=False)
+    country=models.CharField(max_length=150,null=False)
+    pin_code=models.CharField(max_length=150,null=False)
+    created_at=models.DateTimeField(auto_now_add=True)
+    updated_at=models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.user.email}"

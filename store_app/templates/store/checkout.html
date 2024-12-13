@@ -20,39 +20,39 @@
                     <div class="row">
                         <div class="col-md-6">
                             <label for="fname">First Name</label>
-                            <input type="text" required class="form-control" placeholder="Enter first name" id="fname" name="fname" value="{{ order.fname }}">
+                            <input type="text" required class="form-control" placeholder="Enter first name" id="fname" value="{{request.user.first_name}}" name="fname">
                         </div>
                         <div class="col-md-6">
                             <label for="lname">Last Name</label>
-                            <input type="text" required class="form-control" placeholder="Enter last name" id="lname" name="lname" value="{{ order.lname }}">
+                            <input type="text" required class="form-control" placeholder="Enter last name" id="lname" value="{{request.user.last_name}}" name="lname">
                         </div>
                         <div class="col-md-6">
                             <label for="email">Email</label>
-                            <input type="email" required class="form-control" placeholder="Enter last name" id="email" name="email" value="{{ order.lname }}">
+                            <input type="email" required class="form-control" placeholder="Enter email" id="email" name="email" value="{{request.user.email}}">
                         </div>
                         <div class="col-md-6 mt-2">
                             <label for="phone">Phone</label>
-                            <input type="text" required class="form-control" placeholder="Enter Phone" id="phone" name="phone" value="{{ order.phone }}">
+                            <input type="text" required class="form-control" placeholder="Enter Phone" id="phone" name="phone" value="{{ user_profile.phone }}">
                         </div>
                         <div class="col-md-12 mt-2">
                             <label for="address">Address</label>
-                            <textarea required class="form-control" placeholder="Enter Address" id="address" name="address">{{ order.address }}</textarea>
+                            <textarea required class="form-control" placeholder="Enter Address" id="address" name="address">{{ user_profile.address }}</textarea>
                         </div>
                         <div class="col-md-6 mt-2">
                             <label for="city">City</label>
-                            <input type="text" required class="form-control" placeholder="Enter City" id="city" name="city" value="{{ order.city }}">
+                            <input type="text" required class="form-control" placeholder="Enter City" id="city" name="city" value="{{ user_profile.city }}">
                         </div>
                         <div class="col-md-6 mt-2">
                             <label for="state">State</label>
-                            <input type="text" required class="form-control" placeholder="Enter State" id="state" name="state" value="{{ order.state }}">
+                            <input type="text" required class="form-control" placeholder="Enter State" id="state" name="state" value="{{ user_profile.state }}">
                         </div>
                         <div class="col-md-6 mt-2">
                             <label for="country">Country</label>
-                            <input type="text" required class="form-control" placeholder="Enter Country" id="country" name="country" value="{{ order.country }}">
+                            <input type="text" required class="form-control" placeholder="Enter Country" id="country" name="country" value="{{ user_profile.country }}">
                         </div>
                         <div class="col-md-6 mt-2">
                             <label for="pin_code">Pin Code</label>
-                            <input type="text" required class="form-control" placeholder="Enter Pin Code" id="pin_code" name="pin_code" value="{{ order.pin_code }}">
+                            <input type="text" required class="form-control" placeholder="Enter Pin Code" id="pin_code" name="pin_code" value="{{ user_profile.pin_code }}">
                         </div>
                     </div>
                     
