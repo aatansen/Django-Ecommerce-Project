@@ -2,7 +2,7 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from . import views
-from store_app.controller import authview,cart,wishlist,checkout
+from store_app.controller import authview,cart,wishlist,checkout,orders
 
 urlpatterns=[
     path('',views.index,name="index"),
@@ -24,9 +24,13 @@ urlpatterns=[
     path('add-to-wishlist/',wishlist.add_to_wishlist,name="add_to_wishlist"),
     path('delete-wishlist-item/',wishlist.delete_wishlist_item,name="delete_wishlist_item"),
     
-    
+    # checkout 
     path('checkout/',checkout.checkout_view,name="checkout_view"),
     path('place-order/',checkout.place_order,name="place_order"),
+    
+    # order 
+    path('my-orders/',orders.my_orders,name="my_orders"),
+    path('view-order/<str:tr_no>',orders.view_order,name="view_order"),
 ]
 
 if settings.DEBUG:

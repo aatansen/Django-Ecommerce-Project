@@ -1,0 +1,81 @@
+{% extends 'store/layouts/main.html' %}
+
+{% block content %}
+<div class="py-3 bg-primary">
+    <div class="container">
+        <a class="text-white" href="{% url 'index' %}">Home /</a>
+        <a class="text-white" href="{% url 'my_orders' %}">Orders /</a>
+        <a class="text-white" href="{% url 'view_order' order.tracking_no %}">View</a>
+    </div>
+</div>
+
+<div class="container mt-3">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+            <div class="card-header">
+                <h3 class="mb-0">Order View
+                <a href="{% url 'my_orders' %}" class="btn btn-warning float-end"> <i class="fa fa-reply"></i> Back</a>
+                </h3>
+            </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Shipping Details</h4>
+                            <hr>
+                            <label class="mt-2" for="fname">First Name</label>
+                            <div class="border">{{order.fname}}</div>
+                            <label class="mt-2" for="lname">Last Name</label>
+                            <div class="border">{{order.lname}}</div>
+                            <label class="mt-2" for="email">Email</label>
+                            <div class="border">{{order.email}}</div>
+                            <label class="mt-2" for="phone">Contact No</label>
+                            <div class="border">{{order.phone}}</div>
+                            <label class="mt-2" for="address">Address</label>
+                            <div class="border p-1">
+                                {{order.address}}
+                                {{order.city}}
+                                {{order.state}}
+                                {{order.country}}
+                            </div>
+                            <label class="mt-2" for="zip_code">Zip Code</label>
+                            <div class="border p-1">{{order.pin_code}}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Order Details</h4>
+                            <hr>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th>Quantity</th>
+                                        <th>Price</th>
+                                        <th>Image</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in orderItems %}
+                                    <tr>
+                                        <td>{{item.product.name}}</td>
+                                        <td>{{item.quantity}}</td>
+                                        <td>$ {{item.price}}</td>
+                                        <td>
+                                            <img src="{{item.product.product_image.url}}" width="50px" height="50px" alt="Product Image" class="img-fluid">
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <h4>Grand Total: <span class="float-end">{{order.total_price}}</span></h4>
+                            <h6 class="border p-1">Payment Mode: <span class="float-end">{{order.payment_mode}}</span></h6>
+                            <h6 class="border p-1">Order Status: <span class="float-end">{{order.status}}</span></h6>
+                            <h6 class="border p-1">Tracking No: <span class="float-end">{{order.tracking_no}}</span></h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

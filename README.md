@@ -54,6 +54,9 @@
     - [Adding Custom CSS](#adding-custom-css)
     - [Create Order and Order functionality](#create-order-and-order-functionality)
     - [Auto Fill User Data in Checkout (Profile Model)](#auto-fill-user-data-in-checkout-profile-model)
+  - [User Order Page](#user-order-page)
+    - [Display Order Products](#display-order-products)
+    - [View Ordered Product Details](#view-ordered-product-details)
 
 ## Project Setup
 
@@ -82,7 +85,7 @@
   - `Menu-->Tools-->Quick add-->phpmyadmin`
   - Or manually add phpMyAdmin
     - Download [phpMyAdmin](https://www.phpmyadmin.net/downloads/)
-    - Create `phpMyAdmin` folder in `laragon\etc\apps` path and unzip the downloaded content 
+    - Create `phpMyAdmin` folder in `laragon\etc\apps` path and unzip the downloaded content
 
   > Alternatively [MySQL](https://dev.mysql.com/downloads/installer/) or [XAMPP](https://www.apachefriends.org/download.html) can be used
 - Open laragon and start all services
@@ -2171,5 +2174,195 @@
     ```
 
 - In `store_app/templates/store/checkout.html` use value attribute to show the user profile data
+
+[⬆️ Go to Context](#context)
+
+## User Order Page
+
+### Display Order Products
+
+- Add order view in `store_app/controller/orders.py`
+
+    ```py
+    @login_required(login_url='login_page')
+    def my_orders(request):
+        orders=Order_Model.objects.filter(user=request.user)
+        
+        context={
+            "orders":orders,
+        }
+        return render(request,'store/orders/index.html',context)
+    ```
+
+- Add url path in `urls.py`
+  - `path('orders/',orders.my_orders,name="my_orders"),`
+
+- Create `store_app/templates/store/orders/index.html`
+
+    ```jinja
+    {% extends 'store/layouts/main.html' %}
+
+    {% block content %}
+    <div class="py-3 bg-primary">
+        <div class="container">
+            <a class="text-white" href="{% url 'index' %}">Home /</a>
+            <a class="text-white" href="{% url 'my_orders' %}">Orders /</a>
+        </div>
+    </div>
+
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card shadow">
+                <div class="card-header">
+                    <h3 class="mb-0">My Orders</h3>
+                </div>
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Order Date</th>
+                                    <th>Tracking No</th>
+                                    <th>Total Price</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in orders %}
+                                <tr>
+                                    <td>{{item.created_at}}</td>
+                                    <td>{{item.tracking_no}}</td>
+                                    <td>$ {{item.total_price}}</td>
+                                    <td>{{item.status}}</td>
+                                    <td>
+                                        <a href="{% url 'view_order' item.tracking_no %}" class="btn btn-primary">View</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endblock content %}
+    ```
+
+- Adding order navigation in navbar drop down
+
+    ```jinja
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="{% url 'my_orders' %}">My Orders</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{% url 'logout_page' %}">Logout</a></li>
+    </ul>
+    ```
+
+[⬆️ Go to Context](#context)
+
+### View Ordered Product Details
+
+- Create view function in `store_app/controller/orders.py`
+
+    ```py
+    @login_required(login_url='login_page')
+    def view_order(request,tr_no):
+        order=Order_Model.objects.filter(tracking_no=tr_no).filter(user=request.user).first()
+        orderItems=Order_Item_Model.objects.filter(order=order)
+        context={
+            "order":order,
+            "orderItems":orderItems,
+        }
+        return render(request,'store/orders/view.html',context)
+    ```
+
+- Create html page `store_app/templates/store/orders/view.html`
+
+    ```jinja
+    {% extends 'store/layouts/main.html' %}
+
+    {% block content %}
+    <div class="py-3 bg-primary">
+        <div class="container">
+            <a class="text-white" href="{% url 'index' %}">Home /</a>
+            <a class="text-white" href="{% url 'my_orders' %}">Orders /</a>
+            <a class="text-white" href="{% url 'view_order' order.tracking_no %}">View</a>
+        </div>
+    </div>
+
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card shadow">
+                <div class="card-header">
+                    <h3 class="mb-0">Order View
+                    <a href="{% url 'my_orders' %}" class="btn btn-warning float-end"> <i class="fa fa-reply"></i> Back</a>
+                    </h3>
+                </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4>Shipping Details</h4>
+                                <hr>
+                                <label class="mt-2" for="fname">First Name</label>
+                                <div class="border">{{order.fname}}</div>
+                                <label class="mt-2" for="lname">Last Name</label>
+                                <div class="border">{{order.lname}}</div>
+                                <label class="mt-2" for="email">Email</label>
+                                <div class="border">{{order.email}}</div>
+                                <label class="mt-2" for="phone">Contact No</label>
+                                <div class="border">{{order.phone}}</div>
+                                <label class="mt-2" for="address">Address</label>
+                                <div class="border p-1">
+                                    {{order.address}}
+                                    {{order.city}}
+                                    {{order.state}}
+                                    {{order.country}}
+                                </div>
+                                <label class="mt-2" for="zip_code">Zip Code</label>
+                                <div class="border p-1">{{order.pin_code}}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <h4>Order Details</h4>
+                                <hr>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Product Name</th>
+                                            <th>Quantity</th>
+                                            <th>Price</th>
+                                            <th>Image</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in orderItems %}
+                                        <tr>
+                                            <td>{{item.product.name}}</td>
+                                            <td>{{item.quantity}}</td>
+                                            <td>$ {{item.price}}</td>
+                                            <td>
+                                                <img src="{{item.product.product_image.url}}" width="50px" height="50px" alt="Product Image" class="img-fluid">
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                <h4>Grand Total: <span class="float-end">{{order.total_price}}</span></h4>
+                                <h6 class="border p-1">Payment Mode: <span class="float-end">{{order.payment_mode}}</span></h6>
+                                <h6 class="border p-1">Order Status: <span class="float-end">{{order.status}}</span></h6>
+                                <h6 class="border p-1">Tracking No: <span class="float-end">{{order.tracking_no}}</span></h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endblock content %}
+    ```
 
 [⬆️ Go to Context](#context)
