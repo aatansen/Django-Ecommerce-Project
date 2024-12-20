@@ -60,6 +60,7 @@
   - [Chat Features](#chat-features)
     - [Integrate Whatsapp Chat Feature](#integrate-whatsapp-chat-feature)
     - [Integrate Live Chat (tawk.to)](#integrate-live-chat-tawkto)
+  - [Search Feature with Autocomplete](#search-feature-with-autocomplete)
 
 ## Project Setup
 
@@ -2422,6 +2423,163 @@
     })();
     </script>
     <!--End of Tawk.to Script-->
+    ```
+
+[⬆️ Go to Context](#context)
+
+## Search Feature with Autocomplete
+
+- Add Search box input field in `store_app/templates/store/inc/navbar.html`
+
+    ```html
+    <!-- search bar -->
+    <div class="mx-auto search-bar">
+    <div class="input-group">
+        <input type="text" class="form-control" id="search_product" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-secondary" type="button">
+            <i class="fa fa-search"></i>
+        </button>
+    </div>
+    </div>
+    ```
+
+- Search `jquery autocomplete`
+- Get [JQuery Autocomplete](https://jqueryui.com/autocomplete/) code snippet from `view source`
+
+    ```html
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="/resources/demos/style.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
+    ```
+
+- Add the style link in header `store_app/templates/store/layouts/main.html`
+
+    ```html
+    ...
+    <!-- JQuery Autocomplete -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
+    ```
+
+- We already have `jquery-3.7.1` in `store_app/templates/store/layouts/main.html` so only `jquery-ui` need to be add
+  
+    ```html
+    <!-- JQuery -->
+    <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
+
+    <!-- JQuery Autocomplete -->
+    <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
+    ```
+
+- Add Script code below `jquery-ui` script
+  
+    ```html
+    <script>
+    var availableTags = [
+        "ActionScript",
+        "AppleScript",
+        "Asp",
+        "BASIC",
+        "C",
+        "C++",
+        "Clojure",
+        "COBOL",
+        "ColdFusion",
+        "Erlang",
+        "Fortran",
+        "Groovy",
+        "Haskell",
+        "Java",
+        "JavaScript",
+        "Lisp",
+        "Perl",
+        "PHP",
+        "Python",
+        "Ruby",
+        "Scala",
+        "Scheme"
+        ];
+        $( "#search_product" ).autocomplete({
+        source: availableTags
+        });
+    </script>
+    ```
+
+  - Here `#search_product` is the id of the input field
+  - `availableTags` those will be the searchable items
+  - We will change it to `product`
+
+- type `jqajax` in `static/js/custom.js` file to get the `jqajax` code snippet and use it in `script` tag in `store_app/templates/store/layouts/main.html`
+
+    ```js
+    <script>
+    var availableItem = [];
+
+        $.ajax({
+            method: "GET",
+            url: "/product-list",
+            success: function (response) {
+                // console.log(response);
+                StartAutocomplete(response);
+            }
+        });   
+
+        function StartAutocomplete(availableItem){
+            $( "#search_product" ).autocomplete({
+                source: availableItem
+                });
+        }
+    </script>
+    ```
+
+- Add `/product-list` path in `store_app/urls.py`
+  - `path('product-list/',views.product_list_ajax),`
+- Add function `product_list_ajax` in `store_app/views.py`
+
+    ```py
+    def product_list_ajax(request):
+        products=Product_Model.objects.filter(status='0').values_list('name',flat=True)
+        products_list=list(products)
+        return JsonResponse(products_list,safe=False)
+    ```
+
+- We will be able to get the product list from the database and use it in the autocomplete in search bar
+- Now to make those suggested items clickable we will add a form tag in search div
+  
+    ```jinja
+    <!-- search bar -->
+    <div class="mx-auto search-bar">
+    <form action="{% url 'search_product' %}" method="POST">
+        {% csrf_token %}
+    <div class="input-group">
+        <input type="search" required name="search_product" class="form-control" id="search_product" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-secondary" type="submit">
+            <i class="fa fa-search"></i>
+        </button>
+    </div>
+    </form>
+    </div>
+    ```
+
+- Now add the url pattern in `store_app/urls.py`
+  - `path('search-product',views.search_product,name='search_product')`
+- Now add the view function in `store_app/views.py`
+
+    ```py
+    def search_product(request):
+        if request.method=="POST":
+            search_term=request.POST.get('search_product')
+            if search_term == "":
+                return redirect(request.META.get('HTTP_REFERER'))
+            else:
+                product = Product_Model.objects.filter(name__icontains=search_term).first()
+                
+                if product:
+                    return redirect('collections/'+product.category.slug+'/'+product.slug)
+                else:
+                    messages.info(request,"No such product found")
+                    return redirect(request.META.get('HTTP_REFERER'))
+        return redirect(request.META.get('HTTP_REFERER'))
     ```
 
 [⬆️ Go to Context](#context)

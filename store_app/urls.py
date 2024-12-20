@@ -31,6 +31,10 @@ urlpatterns=[
     # order 
     path('my-orders/',orders.my_orders,name="my_orders"),
     path('view-order/<str:tr_no>',orders.view_order,name="view_order"),
+    
+    # search 
+    path('product-list/',views.product_list_ajax),
+    path('search-product',views.search_product,name='search_product')
 ]
 
 if settings.DEBUG:

@@ -4,6 +4,20 @@
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
+
+      <!-- search bar -->
+      <div class="mx-auto search-bar">
+        <form action="{% url 'search_product' %}" method="POST">
+          {% csrf_token %}
+        <div class="input-group">
+            <input type="search" required name="search_product" class="form-control" id="search_product" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-secondary" type="submit">
+                <i class="fa fa-search"></i>
+            </button>
+        </div>
+      </form>
+      </div>
+
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
