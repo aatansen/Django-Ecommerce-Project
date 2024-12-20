@@ -57,6 +57,7 @@
   - [User Order Page](#user-order-page)
     - [Display Order Products](#display-order-products)
     - [View Ordered Product Details](#view-ordered-product-details)
+  - [Integrate Whatsapp Chat Feature](#integrate-whatsapp-chat-feature)
 
 ## Project Setup
 
@@ -2363,6 +2364,36 @@
     </div>
 
     {% endblock content %}
+    ```
+
+[⬆️ Go to Context](#context)
+
+## Integrate Whatsapp Chat Feature
+
+- Search `whatsapp api link` or `whatsapp click to chat`
+  - Get the example link from the [Whatsapp API](https://faq.whatsapp.com/5913398998672934)
+
+- Add link in `store_app/templates/store/layouts/main.html`
+
+    ```html
+    <a href="https://wa.me/8801812282511?text=I%20am%20interested%20to%20chat" 
+    class="whatsapp-icon" 
+    target="_blank">
+    <i class="fab fa-whatsapp"></i>
+    </a>
+    ```
+
+- Add style in `static/css/custom.css`
+
+    ```css
+    .whatsapp-icon {
+        color: #25D366; /* WhatsApp green */
+        font-size: 60px; /* Adjust size as needed */
+        text-decoration: none;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+    }
     ```
 
 [⬆️ Go to Context](#context)

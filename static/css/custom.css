@@ -6,3 +6,12 @@
 .checkoutform input{
     font-size: 14px;
 }
+
+.whatsapp-icon {
+    color: #25D366; /* WhatsApp green */
+    font-size: 60px; /* Adjust size as needed */
+    text-decoration: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+}
