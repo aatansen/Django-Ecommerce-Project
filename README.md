@@ -57,7 +57,9 @@
   - [User Order Page](#user-order-page)
     - [Display Order Products](#display-order-products)
     - [View Ordered Product Details](#view-ordered-product-details)
-  - [Integrate Whatsapp Chat Feature](#integrate-whatsapp-chat-feature)
+  - [Chat Features](#chat-features)
+    - [Integrate Whatsapp Chat Feature](#integrate-whatsapp-chat-feature)
+    - [Integrate Live Chat (tawk.to)](#integrate-live-chat-tawkto)
 
 ## Project Setup
 
@@ -2368,7 +2370,9 @@
 
 [⬆️ Go to Context](#context)
 
-## Integrate Whatsapp Chat Feature
+## Chat Features
+
+### Integrate Whatsapp Chat Feature
 
 - Search `whatsapp api link` or `whatsapp click to chat`
   - Get the example link from the [Whatsapp API](https://faq.whatsapp.com/5913398998672934)
@@ -2394,6 +2398,30 @@
         bottom: 20px;
         right: 20px;
     }
+    ```
+
+[⬆️ Go to Context](#context)
+
+### Integrate Live Chat (tawk.to)
+
+- Go to [tawk.to](https://www.tawk.to/)
+- Open account and add website and get live chat script
+- Add the scripts in `store_app/templates/store/layouts/main.html`
+
+    ```html
+    <!--Start of Tawk.to Script-->
+    <script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/6765795f49e2fd8dfefaf255/1ifi647eg';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+    })();
+    </script>
+    <!--End of Tawk.to Script-->
     ```
 
 [⬆️ Go to Context](#context)

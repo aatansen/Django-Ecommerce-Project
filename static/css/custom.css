@@ -12,6 +12,6 @@
     font-size: 60px; /* Adjust size as needed */
     text-decoration: none;
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 0px;
+    right: 128px;
 }
